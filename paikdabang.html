@@ -1,0 +1,237 @@
+<!DOCTYPE>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<style>
+		  table {
+			border: 1px solid #333333;
+		  }
+		  th, td {
+			border: 1px solid #888888;
+		  }
+		</style>
+	<script>
+	var tbl, list;
+	var sorted = {colIdx:-1,orderBy:"none"}
+	makeTbl = function(){
+		var str = `<table id="tbl">
+	<tr>
+		<th onclick="mySort(0)">음료</th>
+		<th onclick="mySort(1)">카페인(mg)</th>
+		<th onclick="mySort(2)">칼로리(kcal)</th>
+		<th onclick="mySort(3)">나트륨(mg)</th>
+		<th onclick="mySort(4)">당류(g)</th>
+		<th onclick="mySort(5)">포화지방(g)</th>
+		<th onclick="mySort(6)">단백질(g)</th>
+		<th>이미지</th>
+	</tr>
+`;
+		for(one of list){
+			str += '<tr>';
+			str += '<td>'+one[0]+'</td>';
+			str += '<td>'+one[1]+'</td>';
+			str += '<td>'+one[2]+'</td>';
+			str += '<td>'+one[3]+'</td>';
+			str += '<td>'+one[4]+'</td>';
+			str += '<td>'+one[5]+'</td>';
+			str += '<td>'+one[6]+'</td>';
+			str += '<td><a href="'+one[7]+'" target="_blank"><img style="width:100px;height:110px" src="'+one[7]+'" target="_blank" alt="이미지"/></a></td>';
+			str += '</tr>';
+		};
+		str += '</table>';
+		tbl.innerHTML = str;
+	};
+	mySort = function(colIdx){
+		if(sorted.orderBy != "asc"){
+			sorted.orderBy = "asc";
+		} else {
+			sorted.orderBy = "desc";
+		}
+		sorted.colIdx = colIdx;
+		if(sorted.orderBy == "asc"){
+			list.sort(function(a, b){
+			  if(a[colIdx] > b[colIdx]){
+				return 1;
+			  } else {
+				return -1;
+			  }
+			});
+		} else {
+			list.sort(function(a, b){
+			  if(a[colIdx] < b[colIdx]){
+				return 1;
+			  } else {
+				return -1;
+			  }
+			});
+		}
+		makeTbl();
+	};
+	window.onload = function(){
+		tbl = document.getElementById("tbl");
+		list = [
+			 ['더블에스프레소', '237', '22', '0', '0', '0', '1', 'https://paikdabang.com/wp-content/uploads/2018/05/더블에스프레소-2-450x588.png']
+			,['아메리카노(HOT)', '237', '14', '4', '0', '0', '0', 'https://paikdabang.com/wp-content/uploads/2018/05/HOT-앗메리카노-450x588.png']
+			,['아메리카노(ICED)', '237', '13', '4', '0', '0', '0', 'https://paikdabang.com/wp-content/uploads/2018/05/ICED-앗메리카노-450x588.png']
+			,['원조커피(HOT)', '406', '471', '24', '57', '7', '3', 'https://paikdabang.com/wp-content/uploads/2018/05/HOT-원조커피-450x588.png']
+			,['원조커피(ICED)', '371', '425', '22', '48', '12', '3', 'https://paikdabang.com/wp-content/uploads/2018/05/ICED-원조커피-450x588.png']
+			,['원조커피 제로슈거(HOT)', '489', '372', '87', '0', '18', '4', 'https://paikdabang.com/wp-content/uploads/2018/05/원조커피핫-450x588.png']
+			,['원조커피 제로슈거(ICED)', '452', '327', '74', '0', '16', '4', 'https://paikdabang.com/wp-content/uploads/2018/05/ICED-원조커피-450x588.png']
+			,['달달연유라떼(HOT)', '237', '491', '199', '62', '11', '17', 'https://paikdabang.com/wp-content/uploads/2018/05/HOT-달달연유라떼-1-450x588.png']
+			,['달달연유라떼(ICED)', '237', '394', '135', '54', '9', '14', 'https://paikdabang.com/wp-content/uploads/2018/05/ICED-달달연유라떼_-450x588.png']
+			,['빽’s 카페라떼(HOT)', '237', '253', '69', '9', '14', '8', 'https://paikdabang.com/wp-content/uploads/2018/05/HOT-빽s라떼-450x588.png']
+			,['빽’s 카페라떼(ICED)', '237', '198', '81', '10', '8', '10', 'https://paikdabang.com/wp-content/uploads/2018/05/빽s-라떼ICED-450x588.png']
+			,['블랙펄카페라떼(ICED)', '118.5', '429', '115', '59', '6', '9', 'https://paikdabang.com/wp-content/uploads/2018/05/블랙펄카페라떼-450x588.png']
+			,['바닐라라떼(HOT)', '237', '351', '136', '35', '12', '9', 'https://paikdabang.com/wp-content/uploads/2018/05/HOT-바닐라라떼-1-450x588.png']
+			,['바닐라라떼(ICED)', '237', '433', '144', '38', '13', '9', 'https://paikdabang.com/wp-content/uploads/2018/05/ICED-바닐라라떼-450x588.png']
+			,['카페모카(HOT)', '237', '319', '144', '32', '8', '13', 'https://paikdabang.com/wp-content/uploads/2018/05/HOT-카페모카-450x588.png']
+			,['카페모카(ICED)', '237', '365', '146', '36', '8', '13', 'https://paikdabang.com/wp-content/uploads/2018/05/ICED-카페모카-450x588.png']
+			,['카라멜마키아또(HOT)', '237', '354', '137', '40', '7', '8', 'https://paikdabang.com/wp-content/uploads/2018/05/HOT-카라멜마키아또-450x588.png']
+			,['카라멜마키아또(ICED)', '237', '382', '148', '43', '8', '9', 'https://paikdabang.com/wp-content/uploads/2018/05/ICED-카라멜마키아또-450x588.png']
+			,['바나나 카페라떼(HOT)', '119', '297', '156', '40', '7', '9', 'https://paikdabang.com/wp-content/uploads/2023/03/바나나카페라떼HOT-450x588.png']
+			,['바나나 카페라떼(ICED)', '119', '303', '150', '39', '7', '10', 'https://paikdabang.com/wp-content/uploads/2023/03/바나나카페라떼ICED-450x588.png']
+			,['바나나 커피쉐이크', '119', '380', '209', '63', '4', '7', 'https://paikdabang.com/wp-content/uploads/2023/03/바나나커피쉐이크ICED-450x588.png']
+			,['아이스크림카페라떼(ICED)', '237', '357', '126', '32', '13', '11', 'https://paikdabang.com/wp-content/uploads/2022/05/아이스크림카페라떼-450x588.png']
+			,['아이스크림바닐라라떼(ICED)', '237', '520', '214', '49', '15', '11', 'https://paikdabang.com/wp-content/uploads/2022/05/아이스크림바닐라라떼-450x588.png']
+			,['아이스크림카페모카(ICED)', '237', '512', '222', '50', '14', '16', 'https://paikdabang.com/wp-content/uploads/2022/05/아이스크림카페모카-450x588.png']
+			,['콜드브루(ICED)', '209', '15', '2', '0', '0', '1', 'https://paikdabang.com/wp-content/uploads/2018/05/콜드브루-1-450x588.png']
+			,['콜드브루(HOT)', '209', '15', '3', '0', '0', '1', 'https://paikdabang.com/wp-content/uploads/2023/02/콜드브루HOT-450x588.png']
+			,['디카페인 콜드브루(ICED)', '15', '11', '5', '0', '0', '1', 'https://paikdabang.com/wp-content/uploads/2018/05/디카페인-콜드브루-1-450x588.png']
+			,['콜드브루라떼(ICED)', '209', '168', '65', '9', '6', '8', 'https://paikdabang.com/wp-content/uploads/2018/05/콜드브루라떼-1-450x588.png']
+			,['콜드브루라떼(HOT)', '209', '206', '82', '13', '7', '10', 'https://paikdabang.com/wp-content/uploads/2023/02/콜드브루라떼HOT-450x588.png']
+			,['디카페인 콜드브루라떼(ICED)', '15', '162', '90', '9', '5', '8', 'https://paikdabang.com/wp-content/uploads/2018/01/콜드브루라떼-450x588.png']
+			,['콜드브루라떼(연유)(ICED)', '209', '379', '115', '36', '9', '13', 'https://paikdabang.com/wp-content/uploads/2022/01/콜드브루연유라떼-450x588.png']
+			,['콜드브루라떼(연유)(HOT)', '209', '371', '128', '39', '9', '13', 'https://paikdabang.com/wp-content/uploads/2023/02/콜드브루연유라떼HOT-450x588.png']
+			,['디카페인 콜드브루라떼(연유)(ICED)', '15', '357', '133', '40', '9', '13', 'https://paikdabang.com/wp-content/uploads/2022/01/콜드브루연유라떼-450x588.png']
+			,['콜드브루라떼(흑당)(ICED)', '209', '312', '77', '44', '5', '8', 'https://paikdabang.com/wp-content/uploads/2022/01/콜드브루흑당라떼-450x588.png']
+			,['콜드브루라떼(흑당)(HOT)', '209', '334', '72', '42', '4', '9', 'https://paikdabang.com/wp-content/uploads/2023/02/콜드브루흑당라떼HOT-450x588.png']
+			,['디카페인 콜드브루라떼(흑당)(ICED)', '15', '280', '87', '45', '4', '8', 'https://paikdabang.com/wp-content/uploads/2022/01/콜드브루흑당라떼-450x588.png']
+			,['아이스티샷추가(아샷추)', '93', '265', '17', '64', '0', '0.9', 'https://paikdabang.com/wp-content/uploads/2018/01/아샷추-450x588.png']
+			,['빽사이즈 앗!메리카노(ICED)', '474', '19', '8', '0', '0', '4', 'https://paikdabang.com/wp-content/uploads/2018/01/빽사이즈-앗메리카노-32oz-450x588.png']
+			,['빽사이즈 원조커피(ICED)', '564', '646', '34', '73', '18', '5', 'https://paikdabang.com/wp-content/uploads/2018/01/빽사이즈-원조커피-32oz-간얼음-450x588.png']
+			,['빽사이즈 원조커피 제로슈거(ICED)', '686', '497', '113', '0', '25', '6', 'https://paikdabang.com/wp-content/uploads/2018/01/빽사이즈-원조커피-32oz-간얼음-450x588.png']
+			,['빽사이즈 빽’s카페라떼(ICED)', '474', '278', '142', '17', '9', '14', 'https://paikdabang.com/wp-content/uploads/2018/01/빽사이즈-빽s-라떼-32oz-450x588.png']
+			,['빽사이즈 아이스티샷추가(ICED)', '167', '297', '22', '68', '0', '1', 'https://paikdabang.com/wp-content/uploads/2018/01/빽사이즈-아샷추-32oz-450x588.png']
+			,['대파크림감자라떼(HOT)', '0', '557', '315', '27', '26', '12', 'https://paikdabang.com/wp-content/uploads/2024/01/대파크림감자라떼hot_thumb-450x588.png']
+			,['대파크림감자라떼(ICED)', '0', '530', '319', '32', '25', '12.2', 'https://paikdabang.com/wp-content/uploads/2024/01/대파크림감자라떼iced_thumb-450x588.png']
+			,['뱅쇼(HOT)', '0', '223', '12', '46', '0', '0.3', 'https://paikdabang.com/wp-content/uploads/2023/11/뱅쇼hot_thumb-450x588.png']
+			,['뱅쇼(ICED)', '0', '210', '10', '46', '0', '0.4', 'https://paikdabang.com/wp-content/uploads/2023/11/뱅쇼iced_thumb-450x588.png']
+			,['크림소다', '0', '597', '50', '77', '6', '3', 'https://paikdabang.com/wp-content/uploads/2023/08/크림소다_thumb-450x588.png']
+			,['키르시 블렌딩 파인', '0', '395', '69', '90', '0', '0.2', 'https://paikdabang.com/wp-content/uploads/2023/07/키르시블렌딩_파인_thumb-450x588.png']
+			,['키르시 블렌딩 콜라', '119', '397', '73', '87', '0', '1', 'https://paikdabang.com/wp-content/uploads/2023/07/키르시블렌딩_콜라_thumb-450x588.png']
+			,['고구마라떼(HOT)', '0', '463', '110', '71', '6', '10', 'https://paikdabang.com/wp-content/uploads/2018/06/고구마라떼_핫_450x558-450x588.png']
+			,['고구마라떼(ICED)', '0', '413', '101', '56', '5', '10', 'https://paikdabang.com/wp-content/uploads/2018/06/고구마라떼_아이스_450x558-450x588.png']
+			,['고구마스무디', '0', '481', '92', '70', '4', '8', 'https://paikdabang.com/wp-content/uploads/2018/05/고구마스무디_아이스_450x558-450x588.png']
+			,['꿀밤라떼(HOT)', '0', '513', '290', '54', '8', '12', 'https://paikdabang.com/wp-content/uploads/2018/06/꿀밤라떼_핫_450x558-450x588.png']
+			,['꿀밤라떼(ICED)', '0', '436', '210', '50', '6', '9', 'https://paikdabang.com/wp-content/uploads/2018/06/꿀밤라떼_아이스_450x558-450x588.png']
+			,['디아블로 에너지드링크', '60', '321', '100', '71', '0', '1', 'https://paikdabang.com/wp-content/uploads/2023/06/디아블로에너지드링크-450x588.png']
+			,['완전대봉주스', '0', '227', '66', '45', '0', '1', 'https://paikdabang.com/wp-content/uploads/2023/06/완전대봉주스_thumb-450x588.png']
+			,['패션후르츠스무디', '0', '327', '66', '75', '0', '0.5', 'https://paikdabang.com/wp-content/uploads/2023/06/패션후르츠스무디_thumb-450x588.png']
+			,['망고패션스무디', '0', '415', '73', '86', '0', '1', 'https://paikdabang.com/wp-content/uploads/2023/06/망고패션스무디_thumb-450x588.png']
+			,['바나나 라떼(HOT)', '0', '302', '156', '37', '7', '9', 'https://paikdabang.com/wp-content/uploads/2023/03/바나나라떼HOT-450x588.png']
+			,['바나나 라떼(ICED)', '0', '295', '154', '42', '7', '9', 'https://paikdabang.com/wp-content/uploads/2023/03/바나나라떼ICED-450x588.png']
+			,['바나나 밀크쉐이크', '0', '380', '216', '66', '5', '7', 'https://paikdabang.com/wp-content/uploads/2023/03/바나나밀크쉐이크ICED-450x588.png']
+			,['아이스크러시 파인애플', '0', '384', '102', '94', '0', '1', 'https://paikdabang.com/wp-content/uploads/2023/05/icecrush_pine-450x588.png']
+			,['아이스크러시 오렌지', '0', '441', '116', '102', '0', '1', 'https://paikdabang.com/wp-content/uploads/2023/05/icecrush_orange-450x588.png']
+			,['아이스크러시 멜론', '0', '349', '51', '80', '0', '0.5', 'https://paikdabang.com/wp-content/uploads/2023/05/icecrush_melon-450x588.png']
+			,['아이스크러시 콜라', '0', '448', '104', '104', '0', '1', 'https://paikdabang.com/wp-content/uploads/2023/05/icecrush_coke-450x588.png']
+			,['콤부차 파인애플', '0', '103', '6', '0', '0', '0.5', 'https://paikdabang.com/wp-content/uploads/2023/05/kombu_pine-450x588.png']
+			,['콤부차 패션후르츠', '0', '99', '7', '0', '0', '1', 'https://paikdabang.com/wp-content/uploads/2023/05/kombu_fashion-450x588.png']
+			,['우리포도주스', '0', '188', '5', '44', '0', '1', 'https://paikdabang.com/wp-content/uploads/2022/09/우리포도주스-450x588-450x588.png']
+			,['제주감귤주스', '0', '237', '7', '41', '0.1', '2.4', 'https://paikdabang.com/wp-content/uploads/2024/01/제주감귤주스_thumb-450x588.png']
+			,['완전수박주스(ICED)', '0', '262', '5', '53', '0', '3', 'https://paikdabang.com/wp-content/uploads/2018/05/완전수박주스-450x588.png']
+			,['블루캔디소다(ICED)', '0', '225', '8', '52', '0', '0', 'https://paikdabang.com/wp-content/uploads/2022/05/블루캔디소다-450x588.png']
+			,['사과당근주스', '0', '200', '19', '40', '0', '1', 'https://paikdabang.com/wp-content/uploads/2023/01/사과당근주스-450x588-450x588.jpg']
+			,['예천사과주스', '0', '190', '5', '39', '0', '1', 'https://paikdabang.com/wp-content/uploads/2023/01/예천사과주스-450x588-450x588.jpg']
+			,['초코라떼(HOT)', '15', '342', '108', '45', '6', '9', 'https://paikdabang.com/wp-content/uploads/2018/06/HOT-완전초코-450x588.png']
+			,['초코라떼(ICED)', '16', '387', '126', '56', '7', '10', 'https://paikdabang.com/wp-content/uploads/2018/06/ICED-완전초코-450x588.png']
+			,['녹차라떼(HOT)', '208', '481', '156', '63', '7', '12', 'https://paikdabang.com/wp-content/uploads/2018/06/HOT-녹차라떼-1-450x588.png']
+			,['녹차라떼(ICED)', '152', '361', '116', '49', '6', '9', 'https://paikdabang.com/wp-content/uploads/2018/06/ICED-녹차라떼-2-450x588.png']
+			,['민트초코라떼(HOT)', '30', '413', '187', '58', '11', '11', 'https://paikdabang.com/wp-content/uploads/2018/06/HOT-민트초코라떼-450x588.png']
+			,['민트초코라떼(ICED)', '38', '498', '210', '43', '11', '13', 'https://paikdabang.com/wp-content/uploads/2018/06/ICED-민트초코라떼-450x588.png']
+			,['토피넛라떼(HOT)', '51', '411', '174', '19', '13', '8', 'https://paikdabang.com/wp-content/uploads/2018/06/HOT-토피넛라떼-450x588.png']
+			,['토피넛라떼(ICED)', '51', '469', '197', '16', '14', '8', 'https://paikdabang.com/wp-content/uploads/2018/06/ICED-토피넛라떼-450x588.png']
+			,['블랙펄라떼(ICED)', '0', '397', '109', '51', '7', '8', 'https://paikdabang.com/wp-content/uploads/2018/06/블랙펄라떼_-450x588.png']
+			,['미숫가루', '0', '308', '101', '38', '1', '9', 'https://paikdabang.com/wp-content/uploads/2018/06/미숫가루-450x588.png']
+			,['식혜(ICED)', '0', '287', '4', '63', '0.1', '1', 'https://paikdabang.com/wp-content/uploads/2023/03/식혜-450x588.png']
+			,['체리콕콕(ICED)', '23', '290', '7', '72', '0', '1', 'https://paikdabang.com/wp-content/uploads/2023/03/체리콕콕-450x588.png']
+			,['밀크티(HOT)', '133', '313', '70', '35', '7', '9', 'https://paikdabang.com/wp-content/uploads/2018/06/HOT-밀크티-450x588.png']
+			,['밀크티(ICED)', '133', '353', '77', '37', '7', '9', 'https://paikdabang.com/wp-content/uploads/2018/06/ICED-밀크티-450x588.png']
+			,['블랙펄밀크티(ICED)', '77', '513', '82', '60', '14', '6', 'https://paikdabang.com/wp-content/uploads/2018/06/블랙펄밀크티-450x588.png']
+			,['페퍼민트티(HOT)', '0', '1', '4', '0', '0', '0.2', 'https://paikdabang.com/wp-content/uploads/2021/07/HOT-페퍼민트티-450x588.png']
+			,['페퍼민트티(ICED)', '0', '1', '4', '0', '0', '0.2', 'https://paikdabang.com/wp-content/uploads/2021/07/ICED-페퍼민트티-450x588.png']
+			,['황금캐모마일티(HOT)', '0', '7', '4', '0', '0', '0', 'https://paikdabang.com/wp-content/uploads/2018/06/HOT-황금캐모마일티-450x588.png']
+			,['황금캐모마일티(ICED)', '0', '8', '3', '0', '0', '1', 'https://paikdabang.com/wp-content/uploads/2018/06/ICED-황금캐모마일티-450x588.png']
+			,['깔라만시티(HOT)', '0', '268', '130', '66', '0', '1', 'https://paikdabang.com/wp-content/uploads/2018/06/깔라만시티-450x588.png']
+			,['깔라만시티(ICED)', '0', '243', '117', '59', '0', '0', 'https://paikdabang.com/wp-content/uploads/2023/04/깔라만시티-450x588.png']
+			,['달콤아이스티', '51', '267', '13', '63', '1', '0', 'https://paikdabang.com/wp-content/uploads/2018/06/달콤아이스티-450x588.png']
+			,['레몬티(HOT)', '0', '272', '60', '66', '0', '0', 'https://paikdabang.com/wp-content/uploads/2018/06/HOT-레몬티-450x588.png']
+			,['레몬티(ICED)', '0', '277', '118', '67', '0', '1', 'https://paikdabang.com/wp-content/uploads/2018/06/ICED-레몬티-450x588.png']
+			,['피치우롱스위티(HOT)', '65', '150', '7', '35', '0', '1', 'https://paikdabang.com/wp-content/uploads/2018/06/HOT-피치우롱스위티-1-450x588.png']
+			,['피치우롱스위티(ICED)', '71', '150', '5', '32', '0', '1', 'https://paikdabang.com/wp-content/uploads/2018/06/ICED-피치우롱스위티-1-450x588.png']
+			,['우롱티(HOT)', '92', '7', '5', '0', '0', '1', 'https://paikdabang.com/wp-content/uploads/2018/06/HOT-우롱티-450x588.png']
+			,['우롱티(ICED)', '67', '3', '1', '0', '0', '1', 'https://paikdabang.com/wp-content/uploads/2018/06/ICED-우롱티-450x588.png']
+			,['레몬얼그레이티(HOT)', '72', '110', '1', '25', '0', '0.06', 'https://paikdabang.com/wp-content/uploads/2018/06/HOT-레몬얼그레이티-450x588.png']
+			,['레몬얼그레이티(ICED)', '72', '110', '1', '25', '0', '0.06', 'https://paikdabang.com/wp-content/uploads/2018/06/ICED-레몬얼그레이티-450x588.png']
+			,['오렌지자몽블랙티(HOT)', '90', '110', '1', '25', '0', '0.06', 'https://paikdabang.com/wp-content/uploads/2018/06/HOT-오렌지자몽블랙티-450x588.png']
+			,['오렌지자몽블랙티(ICED)', '90', '110', '1', '25', '0', '0.06', 'https://paikdabang.com/wp-content/uploads/2018/06/ICED-오렌지자몽블랙티-450x588.png']
+			,['유자티(HOT)', '0', '284', '61', '69', '0', '1', 'https://paikdabang.com/wp-content/uploads/2018/06/유자티_핫-450x588.png']
+			,['유자티(ICED)', '0', '261', '58', '64', '0', '1', 'https://paikdabang.com/wp-content/uploads/2018/06/유자티_아이스-450x588.png']
+			,['자몽티(HOT)', '0', '281', '15', '66', '0', '1', 'https://paikdabang.com/wp-content/uploads/2018/06/HOT-자몽티-450x588.png']
+			,['자몽티(ICED)', '0', '242', '27', '52', '0', '2', 'https://paikdabang.com/wp-content/uploads/2018/06/ICED-자몽티-450x588.png']
+			,['청포도플라워(ICED)', '0', '220', '6', '52', '0', '0', 'https://paikdabang.com/wp-content/uploads/2018/06/청포도플라워-450x588.png']
+			,['아이스미초', '0', '147', '9', '36', '0.06', '1', 'https://paikdabang.com/wp-content/uploads/2018/06/아이스미초석류-450x588.png']
+			,['딸기에이드(ICED)', '0', '184', '10', '39', '0', '2', 'https://paikdabang.com/wp-content/uploads/2022/02/딸기에이드-450x588.png']
+			,['레모네이드(ICED)', '0', '246', '55', '60', '0', '0', 'https://paikdabang.com/wp-content/uploads/2018/06/레모네이드-450x588.png']
+			,['청포도에이드', '0', '234', '8', '56', '0', '0', 'https://paikdabang.com/wp-content/uploads/2018/06/청포도에이드-450x588.png']
+			,['깔라만시에이드', '0', '215', '81', '50', '0', '1', 'https://paikdabang.com/wp-content/uploads/2018/06/깔라만시에이드-450x588.png']
+			,['유자에이드', '0', '251', '51', '62', '0', '1', 'https://paikdabang.com/wp-content/uploads/2018/06/유자에이드-1-450x588.png']
+			,['자몽에이드', '0', '258', '16', '61', '0', '1', 'https://paikdabang.com/wp-content/uploads/2018/06/자몽에이드-450x588.png']
+			,['복숭아에이드', '0', '241', '6', '54', '0', '1', 'https://paikdabang.com/wp-content/uploads/2018/05/복숭아에이드-450x588.png']
+			,['미초(석류)에이드', '0', '141', '5', '32', '0.07', '1', 'https://paikdabang.com/wp-content/uploads/2018/05/미초에이드-450x588.png']
+			,['완전토마토', '0', '159', '10', '36', '0', '3', 'https://paikdabang.com/wp-content/uploads/2021/12/완전토마토-450x588.png']
+			,['완전딸기주스', '0', '224', '7', '43', '0', '2', 'https://paikdabang.com/wp-content/uploads/2018/05/완전딸기-450x588.png']
+			,['완전망고주스', '0', '241', '7', '37', '0', '2', 'https://paikdabang.com/wp-content/uploads/2018/05/완전망고-450x588.png']
+			,['완전블루베리주스(ICED)', '0', '231', '6', '49', '0.1', '3', 'https://paikdabang.com/wp-content/uploads/2023/04/블루베리주스-450x588.png']
+			,['블루베리요거트스무디(ICED)', '0', '484', '99', '74', '6', '10', 'https://paikdabang.com/wp-content/uploads/2023/04/블루베리요거트스무디-450x588.png']
+			,['밀크쉐이크', '0', '535', '390', '52', '6', '12', 'https://paikdabang.com/wp-content/uploads/2018/05/밀크쉐이크-2-450x588.png']
+			,['플레인요거트스무디', '0', '494', '77', '94', '6', '7', 'https://paikdabang.com/wp-content/uploads/2018/05/플레인요거트스무디-450x588.png']
+			,['딸기요거트스무디', '0', '448', '109', '45', '6', '8', 'https://paikdabang.com/wp-content/uploads/2018/05/딸기요거트스무디-2-450x588.png']
+			,['빽사이즈 초코라떼(ICED)', '23', '555', '333', '90', '8', '15', 'https://paikdabang.com/wp-content/uploads/2018/04/빽사이즈-완전초코-32oz-450x588.png']
+			,['빽사이즈 달콤아이스티(ICED)', '32', '406', '29', '95', '0', '1', 'https://paikdabang.com/wp-content/uploads/2018/04/빽사이즈-달콤아이스티-32oz-450x588.png']
+			,['딸기라떼(ICED)', '0', '331', '83', '54', '5', '8', 'https://paikdabang.com/wp-content/uploads/2022/02/딸기라떼-450x588.png']
+			,['노말한소프트', '0', '333', '70', '20', '17', '4', 'https://paikdabang.com/wp-content/uploads/2018/05/노말한소프트-3-450x588.png']
+			,['달고나크런치', '0', '434', '122', '60.5', '15', '4.9', 'https://paikdabang.com/wp-content/uploads/2018/05/달고나크런치-450x588.png']
+			,['사라다빵', '0', '386', '498', '8', '5', '9', 'https://paikdabang.com/wp-content/uploads/2017/05/사라다빵-450x588.png']
+			,['소세지빵', '0', '500', '679', '1', '11', '19', 'https://paikdabang.com/wp-content/uploads/2017/05/소세지빵-450x588.png']
+			,['원조빽스치노(BASIC)', '280', '578', '122', '75', '16', '9', 'https://paikdabang.com/wp-content/uploads/2018/05/원조빽스치노-BASIC-450x588.png']
+			,['원조빽스치노(SOFT)', '280', '785', '166', '87', '26', '11', 'https://paikdabang.com/wp-content/uploads/2018/05/원조빽스치노-SOFT-450x588.png']
+			,['딸기바나나빽스치노(BASIC)', '0', '500', '108', '93', '2', '8', 'https://paikdabang.com/wp-content/uploads/2018/05/완전딸기바나나-BASIC-450x588.png']
+			,['딸기바나나빽스치노(SOFT)', '0', '685', '164', '138', '12', '11', 'https://paikdabang.com/wp-content/uploads/2018/05/완전딸기바나나-SOFT-450x588.png']
+			,['초코바나나빽스치노(BASIC)', '24', '607', '181', '72', '5', '12', 'https://paikdabang.com/wp-content/uploads/2018/05/완전초코바나나-BASIC-450x588.png']
+			,['초코바나나빽스치노(SOFT)', '24', '792', '237', '117', '15', '15', 'https://paikdabang.com/wp-content/uploads/2018/05/완전초코바나나_빽스치노-SOFT-450x588.png']
+			,['딸기 빽스치노(BASIC)', '0', '480', '127', '86', '4', '8', 'https://paikdabang.com/wp-content/uploads/2018/05/완전딸기빽스치노-BASIC-450x588.png']
+			,['딸기 빽스치노(SOFT)', '0', '687', '170', '98', '14', '10', 'https://paikdabang.com/wp-content/uploads/2018/05/완전딸기빽스치노-SOFT-450x588.png']
+			,['녹차빽스치노(BASIC)', '260', '548', '157', '90', '7', '10', 'https://paikdabang.com/wp-content/uploads/2018/05/녹차빽스치노-BASIC-450x588.png']
+			,['녹차빽스치노(SOFT)', '260', '755', '200', '103', '17', '13', 'https://paikdabang.com/wp-content/uploads/2018/05/녹차빽스치노-SOFT-450x588.png']
+			,['민트초코빽스치노(BASIC)', '51', '602', '244', '28', '14', '12', 'https://paikdabang.com/wp-content/uploads/2018/05/민트초코빽스치노-BASIC-450x588.png']
+			,['민트초코빽스치노(SOFT)', '51', '809', '287', '40', '24', '15', 'https://paikdabang.com/wp-content/uploads/2018/05/민트초코빽스치노-SOFT-450x588.png']
+			,['쿠키크런치빽스치노(BASIC)', '11', '768', '247', '93', '15', '13', 'https://paikdabang.com/wp-content/uploads/2018/05/쿠키크런치빽스치노-BASIC-450x588.png']
+			,['쿠키크런치빽스치노(SOFT)', '11', '942', '284', '103', '23', '15', 'https://paikdabang.com/wp-content/uploads/2018/05/쿠키크런치빽스치노-SOFT-450x588.png']
+			,['초코빽스치노(BASIC)', '36', '520', '119', '92', '6', '10', 'https://paikdabang.com/wp-content/uploads/2018/05/완전초코빽스치노-BASIC-450x588.png']
+			,['초코빽스치노(SOFT)', '36', '694', '155', '103', '15', '12', 'https://paikdabang.com/wp-content/uploads/2018/05/완전초코빽스치노-SOFT-450x588.png']
+			,['피스타치오빽스치노(BASIC)', '10', '535', '329', '12', '16', '8', 'https://paikdabang.com/wp-content/uploads/2018/05/피스타치오빽스치노-BASIC-450x588.png']
+			,['피스타치오빽스치노(SOFT)', '10', '742', '373', '24', '26', '10', 'https://paikdabang.com/wp-content/uploads/2018/05/피스타치오빽스치노-SOFT-450x588.png']
+			,['퐁당치노(바닐라)', '0', '496', '211', '60', '9', '11', 'https://paikdabang.com/wp-content/uploads/2018/05/퐁당치노_바닐라-450x588.png']
+			,['퐁당치노(원조커피)', '206', '483', '106', '54', '10', '8', 'https://paikdabang.com/wp-content/uploads/2018/05/퐁당치노_원조-450x588.png']
+			,['퐁당치노(미숫가루)', '0', '613', '214', '74', '9', '17', 'https://paikdabang.com/wp-content/uploads/2018/05/퐁당치노_미숫가루-450x588.png']
+		];
+		makeTbl();
+	};
+</script>
+</head>
+<body>
+<h3>표의 가장 위의 머리글을 누르시면 오름차순, 내림차순 정렬이 됩니다 !</h3>
+<table id="tbl"/>
+</body>
+</html>
