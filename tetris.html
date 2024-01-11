@@ -94,7 +94,7 @@ function down(){
 		}
 		var count=0;
 		var j=0;
-		console.log("check start");
+		//console.log("check start");
 		for(i=arr.length-1;i>-1;i--){	//	for1 : down block
 			if(j>9){
 			arr[i+j].innerHTML=arr[i].innerHTML;	
@@ -103,9 +103,8 @@ function down(){
 				count++;
 			}
 			if(i%10==0){
-				console.log("check clear ["+i+", "+j+"]");
+				//console.log("check clear ["+i+", "+j+"]");
 				if(count==10){
-					score++;
 					j+=10;
 				}else if(count==0){
 					break;
@@ -113,12 +112,13 @@ function down(){
 				count=0;
 			}
 		}	//	end of for1
-		j=i+j+1;
+		j=i+j;
 		// count=0;
 		for(;i<j;i++){			// for2 : clear block
 			arr[i].innerHTML='0';
+			score += 10;
 		}	// end of for2
-		console.log("check end");
+		//console.log("check end");
 		num++;
 		createBlock();
 	}	//	end of else
@@ -148,8 +148,16 @@ function init(){
 		if(i%10==0){
 			str+="<br>"
 		}
-		str+="<button class='block'></button/>";
+		str+='<button style="width:10%;height:30px" class="block"></button/>';
 	}
+	str +='<div style="text-align:center">';
+	str +='<button onclick="key_button_down({keyCode:38})" style="width:34%;height:80px;font-size:33px">↑</button>';
+	str +='</div>';
+	str +='<div style="display:flex">';
+	str +='<button onclick="key_button_down({keyCode:37})" style="display:inline-block;width:33%;height:80px;font-size:33px">←</button>';
+	str +='<button onclick="key_button_down({keyCode:40})" style="display:inline-block;width:34%;height:80px;font-size:33px">↓</button>';
+	str +='<button onclick="key_button_down({keyCode:39})" style="display:inline-block;width:33%;height:80px;font-size:33px">→</button>';
+	str +='</div>';
 	document.write(str);
 	arr=document.getElementsByClassName("block");
 	for(i=0;i<arr.length;i++){
@@ -158,27 +166,18 @@ function init(){
  	h2=document.getElementsByTagName("h2")[0];
 }	// end of init
 
-window.onload = function(){	//	start
-	init();
-	createBlock();
-	draw();
-	var myInterval=setInterval(function(){
-	 	down();
-		draw();
-	}, speed);
-	
-	document.addEventListener('keydown', function(event){
- 		console.log("Key:"+String.fromCharCode(event.keyCode)+":"+event.keyCode);
+function key_button_down(event){
+ 		//console.log("Key:"+String.fromCharCode(event.keyCode)+":"+event.keyCode);
 	    switch (event.keyCode){
 	    case 49:	//	key=1
-	    	console.log("block start");
+	    	//console.log("block start");
 	    	myInterval=setInterval(function(){
 	    	 	down();
 	    		draw();
 	    	}, speed);
 	    break;
 	    case 50:	//	key=2
-	    	console.log("block stop!");
+	    	//console.log("block stop!");
 	    	clearInterval(myInterval);
 	    break;
 	    case 37:	//	key=LEFT
@@ -523,7 +522,20 @@ window.onload = function(){	//	start
 	    		break;
 	    	}//end Rotate switch
 	    }
-	} );
+	};
+
+window.onload = function(){	//	start
+	init();
+	createBlock();
+	draw();
+	var myInterval=setInterval(function(){
+	 	down();
+		draw();
+	}, speed);
+	
+	document.addEventListener('keydown', function(event){
+		key_button_down(event);
+	});
 }
 </script>
 <style type="text/css">
