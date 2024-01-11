@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
@@ -105,6 +105,7 @@ function down(){
 			if(i%10==0){
 				console.log("check clear ["+i+", "+j+"]");
 				if(count==10){
+					score++;
 					j+=10;
 				}else if(count==0){
 					break;
@@ -112,11 +113,10 @@ function down(){
 				count=0;
 			}
 		}	//	end of for1
-		j=i+j;
+		j=i+j+1;
 		// count=0;
 		for(;i<j;i++){			// for2 : clear block
 			arr[i].innerHTML='0';
-			score += 10;
 		}	// end of for2
 		console.log("check end");
 		num++;
@@ -150,14 +150,6 @@ function init(){
 		}
 		str+="<button class='block'></button/>";
 	}
-	str +='<div style="text-align:center">';
-	str +='<button onclick="key_button_down({keyCode:38})" style="width:34%;height:50px;font-size:33px">↑</button>';
-	str +='</div>';
-	str +='<div style="display:flex">';
-	str +='<button onclick="key_button_down({keyCode:37})" style="display:inline-block;width:33%;height:50px;font-size:33px">←</button>';
-	str +='<button onclick="key_button_down({keyCode:40})" style="display:inline-block;width:34%;height:50px;font-size:33px">↓</button>';
-	str +='<button onclick="key_button_down({keyCode:39})" style="display:inline-block;width:33%;height:50px;font-size:33px">→</button>';
-	str +='</div>';
 	document.write(str);
 	arr=document.getElementsByClassName("block");
 	for(i=0;i<arr.length;i++){
@@ -166,7 +158,16 @@ function init(){
  	h2=document.getElementsByTagName("h2")[0];
 }	// end of init
 
-function key_button_down(event){
+window.onload = function(){	//	start
+	init();
+	createBlock();
+	draw();
+	var myInterval=setInterval(function(){
+	 	down();
+		draw();
+	}, speed);
+	
+	document.addEventListener('keydown', function(event){
  		console.log("Key:"+String.fromCharCode(event.keyCode)+":"+event.keyCode);
 	    switch (event.keyCode){
 	    case 49:	//	key=1
@@ -522,20 +523,7 @@ function key_button_down(event){
 	    		break;
 	    	}//end Rotate switch
 	    }
-	};
-
-window.onload = function(){	//	start
-	init();
-	createBlock();
-	draw();
-	var myInterval=setInterval(function(){
-	 	down();
-		draw();
-	}, speed);
-	
-	document.addEventListener('keydown', function(event){
-		key_button_down(event);
-	});
+	} );
 }
 </script>
 <style type="text/css">
