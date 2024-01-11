@@ -98,7 +98,7 @@
 	setSize = function(){
 		let size = 16;
 		$("html").css("font-size", size + "px");
-		while($("#span01").height() < $("#span02").height() && size > 1){
+		while($("#span01").height() < $("#span02").height() && size > 6){
 			$("html").css("font-size", (--size) + "px");
 		}
 		$("#span99").text(size);
@@ -280,7 +280,6 @@
 		<span style="font-size:1.4rem;">필터 :&nbsp;</span><input style="width:15rem" id="input1" onchange="setFilter()" maxlength="10"/>
 		<span style="font-size:1.4rem;margin-left:auto;">2024-01-10</span>
 	</div>
-	<span id="span99"/>
 	<table id="tbl" style="margin-top:0.2rem;" width="100%" border="0" cellspacing="0" cellpadding="3"/>
 </body>
 </html>
