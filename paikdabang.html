@@ -15,14 +15,14 @@
 	makeTbl = function(){
 		var str = `<table id="tbl">
 	<tr>
-		<th style="font-size:1rem;" onclick="mySort(0)">음료</th>
-		<th style="font-size:1rem;" onclick="mySort(1)">카페인(mg)</th>
-		<th style="font-size:1rem;" onclick="mySort(2)">칼로리(kcal)</th>
-		<th style="font-size:1rem;" onclick="mySort(3)">나트륨(mg)</th>
-		<th style="font-size:1rem;" onclick="mySort(4)">당류(g)</th>
-		<th style="font-size:1rem;" onclick="mySort(5)">포화지방(g)</th>
-		<th style="font-size:1rem;" onclick="mySort(6)">단백질(g)</th>
-		<th style="font-size:1rem;">이미지</th>
+		<th style="font-size:1rem;" onclick="mySort(0)"><span id="span01">음료<span></th>
+		<th style="font-size:0.8rem;" onclick="mySort(1)">카페인(mg)</th>
+		<th style="font-size:0.8rem;" onclick="mySort(2)">칼로리(kcal)</th>
+		<th style="font-size:0.8rem;" onclick="mySort(3)">나트륨(mg)</th>
+		<th style="font-size:0.8rem;" onclick="mySort(4)">당류(g)</th>
+		<th style="font-size:0.8rem;" onclick="mySort(5)"><span id="span02">포화지방(g)</span></th>
+		<th style="font-size:0.8rem;" onclick="mySort(6)">단백질(g)</th>
+		<th style="font-size:0.8rem;">이미지</th>
 	</tr>
 `;
 		for(let i=0; i < list.length; i++){
@@ -38,7 +38,7 @@
 			if(one[9] == "i"){
 				str += '<td><a href="' + one[7] + '" target="_blank"><img style="width:5rem;height:5.5rem" src="' + one[7] + '" target="_blank" alt="'+one[0]+'"/></a></td>';
 			} else {
-				str += '<td><button style="font-size:1rem;" onclick="showImage('+(i+2)+')">보기</button></td>';
+				str += '<td style="text-align:center"><button style="font-size:0.8rem;" onclick="showImage('+(i+2)+')">보기</button></td>';
 			}
 			str += '</tr>';
 		};
@@ -96,10 +96,10 @@
 	};
 	
 	setSize = function(){
-		if(Number($("#tbl").css("width").replace("px", "")) < 830){
-			$("html").css("font-size", "10px");
-		} else {
-			$("html").css("font-size", "16px");
+		let size = 16;
+		$("html").css("font-size", size + "px");
+		while($("#span01").height() < $("#span02").height()){
+			$("html").css("font-size", (--size) + "px");
 		}
 	};
 
