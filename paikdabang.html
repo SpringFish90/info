@@ -98,7 +98,7 @@
 	setSize = function(){
 		let size = 16;
 		$("html").css("font-size", size + "px");
-		while($("#span01").height() < $("#span02").height() && size > 5){
+		while($("#span01").height() < $("#span02").height() && size > 0){
 			$("html").css("font-size", (--size) + "px");
 		}
 		console.log(size);
