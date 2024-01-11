@@ -143,21 +143,13 @@ function draw(){
 
 function init(){
 	var str="";
-	str="<h2>ClearLines: 0 Count: 0 </h2>"
+	str='<h2>ClearLines: 0 Count: 0 </h2>';
 	for(i=0;i<200;i++){	//	arr.length=200
 		if(i%10==0){
-			str+="<br>"
+			str+='<br>'
 		}
-		str+='<button style="width:10%;height:30px" class="block"></button/>';
+		str+='<button class="block"></button/>';
 	}
-	str +='<div style="text-align:center">';
-	str +='<button onclick="key_button_down({keyCode:38})" style="width:34%;height:80px;font-size:33px">↑</button>';
-	str +='</div>';
-	str +='<div style="display:flex">';
-	str +='<button onclick="key_button_down({keyCode:37})" style="display:inline-block;width:33%;height:80px;font-size:33px">←</button>';
-	str +='<button onclick="key_button_down({keyCode:40})" style="display:inline-block;width:34%;height:80px;font-size:33px">↓</button>';
-	str +='<button onclick="key_button_down({keyCode:39})" style="display:inline-block;width:33%;height:80px;font-size:33px">→</button>';
-	str +='</div>';
 	document.write(str);
 	arr=document.getElementsByClassName("block");
 	for(i=0;i<arr.length;i++){
