@@ -1,0 +1,251 @@
+<html>
+<head>
+<style>
+  th, td {
+	border: 1px solid #888888;
+  }
+  th {
+	background-color : #88ccff;
+  }
+</style>
+<script src="https://code.jquery.com/jquery-latest.min.js"></script>
+<script>
+	var list = [];
+	var orderBy = "asc";
+	makeTbl = function(){
+		var str = `<table id="tbl">
+	<tr>
+		<th style="font-size:1rem;" onclick="mySort(0)"><span id="span01">음료<span></th>
+		<th style="font-size:0.8rem;" onclick="mySort(1)">칼로리(kcal)</th>
+		<th style="font-size:0.8rem;" onclick="mySort(3)">나트륨(mg)</th>
+		<th style="font-size:0.8rem;" onclick="mySort(4)">당류(g)</th>
+		<th style="font-size:0.8rem;" onclick="mySort(2)"><span id="span02">포화지방(g)</span></th>
+		<th style="font-size:0.8rem;" onclick="mySort(5)">단백질(g)</th>
+		<th style="font-size:0.8rem;">이미지</th>
+	</tr>
+`;
+		for(let i=0; i < list.length; i++){
+			let one = list[i];
+			str += '<tr>';
+			str += '<td style="font-size:1rem;">'+one[0]+'</td>';
+			str += '<td style="font-size:1rem;text-align:right">'+one[1]+'</td>';
+			str += '<td style="font-size:1rem;text-align:right">'+one[3]+'</td>';
+			str += '<td style="font-size:1rem;text-align:right">'+one[4]+'</td>';
+			str += '<td style="font-size:1rem;text-align:right">'+one[2]+'</td>';
+			str += '<td style="font-size:1rem;text-align:right">'+one[5]+'</td>';
+			if(one[9] == "i"){
+				str += '<td style="text-align:center"><a href="' + one[6] + '" target="_blank"><img style="width:5rem;height:5.5rem" src="' + one[6] + '" target="_blank" alt="'+one[0]+'"/></a></td>';
+			} else {
+				str += '<td style="text-align:center"><button style="font-size:0.8rem;" onclick="showImage('+(i+2)+')">보기</button></td>';
+			}
+			str += '</tr>';
+		};
+		str += '</table>';
+		$("#tbl").html(str);
+		if($("#input1").val() != ""){
+			setFilter();
+		}
+	};
+
+	mySort = function(colIdx){
+		if(orderBy != "asc"){
+			orderBy = "asc";
+		} else {
+			orderBy = "desc";
+		}
+		if(orderBy == "asc"){
+			list.sort(function(a, b){
+				console.log(a[colIdx], b[colIdx], (isNaN(a[colIdx]) ? a[colIdx] : Number(a[colIdx]))
+				> (isNaN(b[colIdx]) ? b[colIdx] : Number(b[colIdx])));
+			  if((isNaN(a[colIdx]) ? a[colIdx] : Number(a[colIdx]))
+				> (isNaN(b[colIdx]) ? b[colIdx] : Number(b[colIdx]))){
+				return 1;
+			  } else {
+				return -1;
+			  }
+			});
+		} else {
+			list.sort(function(a, b){
+			  if((isNaN(a[colIdx]) ? a[colIdx] : Number(a[colIdx]))
+				< (isNaN(b[colIdx]) ? b[colIdx] : Number(b[colIdx]))){
+				return 1;
+			  } else {
+				return -1;
+			  }
+			});
+		}
+		makeTbl();
+	};
+
+	setFilter = function(){
+		var trList = $("#tbl tr");
+		for(let i=1; i < trList.length; i++){
+			if(trList[i].children[0].innerText.indexOf($("#input1").val()) > -1){
+				$("#tbl tr:nth-child("+(i+1)+")").css("display","");
+			} else {
+				$("#tbl tr:nth-child("+(i+1)+")").css("display","none");
+			}
+		}
+	};
+
+	showImage = function(nth){
+		let one = list[nth-2];
+		list[nth-2][8] = "i"; // 이미지
+		$("#tbl tr:nth-child("+nth+") td:nth-child(7)").append('<a href="' + one[6] + '" target="_blank"><img style="width:5rem;height:5.5rem" src="' + one[6] + '" target="_blank" alt="'+one[0]+'"/></a>');
+		$("#tbl tr:nth-child("+nth+") td:nth-child(7) button").remove();
+	};
+	
+	setSize = function(){
+		let size = 16;
+		$("html").css("font-size", size + "px");
+		while($("#span01").height() < $("#span02").height() && size > 11){
+			$("html").css("font-size", (--size) + "px");
+		}
+	};
+
+	window.onload = function(){
+		list = [			 
+  ["베이컨 크림치즈 씨드롤", "421", "11", "656", "12", "11", "https://image.istarbucks.co.kr/upload/store/skuimg/2023/12/[9300000005042]_20231222162604988.jpg"]
+, ["바질 토마토 크림치즈 베이글", "517", "12", "804", "17", "14", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/03/[9300000003223]_20210315170846073.jpg"]
+, ["탕종 블루베리 베이글", "240", "1.9", "550", "9", "7", "https://image.istarbucks.co.kr/upload/store/skuimg/2023/09/[9300000004823]_20230911131337120.jpg"]
+, ["탕종 파마산 치즈 베이글", "255", "3.2", "660", "7", "7", "https://image.istarbucks.co.kr/upload/store/skuimg/2023/09/[9300000004834]_20230911131405979.jpg"]
+, ["탕종 플레인 베이글", "235", "1.9", "600", "6", "7", "https://image.istarbucks.co.kr/upload/store/skuimg/2023/09/[9300000004833]_20230911131305579.jpg"]
+, ["미니 클래식 스콘", "456", "15", "383", "12", "7", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/04/[5110001099]_20210421161145644.jpg"]
+, ["클래식 스콘", "481", "16", "448", "12", "7", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/04/[9300000001557]_20210422112532808.jpg"]
+, ["피넛 쑥 떡 스콘", "490", "6", "540", "27", "7", "https://image.istarbucks.co.kr/upload/store/skuimg/2022/03/[9300000004028]_20220314152820975.jpg"]
+, ["거문 오름 크루아상", "391", "14", "367", "16", "7", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/04/[9300000001361]_20210421133918737.jpg"]
+, ["미니 리프 파이", "212", "5", "131", "15", "2", "https://image.istarbucks.co.kr/upload/store/skuimg/2022/02/[9300000004008]_20220218143920309.jpg"]
+, ["바질 치즈 포카치아", "360", "6", "568", "3", "16", "https://image.istarbucks.co.kr/upload/store/skuimg/2023/07/[9300000004511]_20230713123922840.jpg"]
+, ["뺑 오 쇼콜라", "295", "10", "380", "8", "5", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/04/[9300000002431]_20210421164613125.jpg"]
+, ["스모크드 소시지 브레드", "520", "5", "985", "7", "14", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/04/[9300000002445]_20210421172107585.jpg"]
+, ["연유 밀크모닝", "440", "11", "540", "23", "8", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/02/[9300000003175]_20210210174347318.jpg"]
+, ["오름 치즈 케이츄리", "590", "20", "600", "26", "10", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/07/[9300000003520]_20210727081330163.jpg"]
+, ["올래 미니 크루아상", "315", "14", "230", "18", "3", "https://image.istarbucks.co.kr/upload/store/skuimg/2020/06/[9300000002848]_20200626143224628.jpg"]
+, ["주상절리 파이", "505", "17", "480", "24", "7", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/04/[9300000002489]_20210421134243043.jpg"]
+, ["초콜릿 월넛 브레드", "740", "22", "295", "36", "11", "https://image.istarbucks.co.kr/upload/store/skuimg/2023/08/[9300000004825]_20230821112112071.jpg"]
+, ["크림치즈 브리오슈 보스톡", "505", "7", "365", "25", "7", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/03/[9300000002931]_20210325161934333.jpg"]
+, ["하트 파이", "466", "10", "501", "16", "9", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/04/[5110006070]_20210422111451589.jpg"]
+, ["한 입에 쏙 치즈 꿀 볼", "283", "4.4", "582", "8", "13", "https://image.istarbucks.co.kr/upload/store/skuimg/2020/09/[9300000003042]_20200924141423384.jpg"]
+, ["푸른 용 블루베리 수플레 케이크", "552", "15", "255", "47", "8", "https://image.istarbucks.co.kr/upload/store/skuimg/2023/12/[9300000005041]_20231222162506505.jpg"]
+, ["푸른 용 얼 그레이 쉬폰 케이크", "496", "19", "156", "21", "6", "https://image.istarbucks.co.kr/upload/store/skuimg/2023/12/[9300000005040]_20231222162206688.jpg"]
+, ["7 레이어 가나슈 케이크", "576", "22", "163", "34", "7", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/04/[9300000001179]_20210421164934656.jpg"]
+, ["The 촉촉 초콜릿 생크림 케이크", "456", "16", "140", "23", "7", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/05/[9300000003393]_20210520100142603.jpg"]
+, ["꿀 고구마 생크림 케이크", "465", "18", "190", "40", "4", "https://image.istarbucks.co.kr/upload/store/skuimg/2023/11/[9300000004966]_20231128145321680.jpg"]
+, ["라즈베리 쇼콜라", "535", "12", "95", "41", "6", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/03/[9300000002929]_20210325161742539.jpg"]
+, ["마스카포네 티라미수 케이크", "476", "19", "100", "28", "8", "https://image.istarbucks.co.kr/upload/store/skuimg/2023/06/[9300000001907]_20230619130922058.jpg"]
+, ["멘지락 쑥팥 생크림 케이크", "295", "13", "110", "23", "5", "https://image.istarbucks.co.kr/upload/store/skuimg/2022/03/[9300000004043]_20220314152912551.jpg"]
+, ["밀당 에그 타르트", "380", "6", "300", "16", "4", "https://image.istarbucks.co.kr/upload/store/skuimg/2020/09/[9300000003038]_20200924082251581.jpg"]
+, ["바스크 치즈 케이크", "665", "27", "410", "46", "11", "https://image.istarbucks.co.kr/upload/store/skuimg/2023/05/[9300000004485]_20230524125743610.jpg"]
+, ["부드러운 생크림 카스텔라", "544", "13", "215", "42", "8", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/04/[5110007181]_20210421164728509.jpg"]
+, ["부드러운 티라미수 롤", "443", "14", "162", "35", "8", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/02/[9300000002926]_20210210172612809.jpg"]
+, ["새코롬 한라봉 크림 케이크", "350", "13", "140", "23", "4", "https://image.istarbucks.co.kr/upload/store/skuimg/2023/03/[9300000004518]_20230320090706386.jpg"]
+, ["슈크림 가득 바움쿠헨", "564", "18", "161", "31", "9", "https://image.istarbucks.co.kr/upload/store/skuimg/2023/01/[9300000002448]_20230102083308549.jpg"]
+, ["스노우 딸기 생크림 케이크", "495", "14", "200", "38", "5", "https://image.istarbucks.co.kr/upload/store/skuimg/2023/12/[9300000004970]_20231231002106713.jpg"]
+, ["클래식 블루베리 치즈 케이크", "790", "33", "510", "63", "10", "https://image.istarbucks.co.kr/upload/store/skuimg/2023/10/[9300000004635]_20231013085728917.jpg"]
+, ["당근 현무암 케이크", "375", "10", "140", "27", "5", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/04/[9300000001055]_20210421133631796.jpg"]
+, ["새코롬 돌코롬 한라봉 케이크", "380", "9", "105", "43", "6", "https://image.istarbucks.co.kr/upload/store/skuimg/2020/06/[9300000002857]_20200626140242045.jpg"]
+, ["제주 녹차 생크림 롤", "590", "17", "160", "22", "9", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/07/[9300000003468]_20210727081659217.jpg"]
+, ["제주 땅콩 생크림 롤", "640", "15", "150", "19", "11", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/07/[9300000003469]_20210727081817626.jpg"]
+, ["돔 피칸 타르트", "435", "7", "160", "29", "6", "https://image.istarbucks.co.kr/upload/store/skuimg/2022/05/[9300000004098]_20220523144024517.jpg"]
+, ["마스카포네 티라미수", "275", "12", "110", "22", "3", "https://image.istarbucks.co.kr/upload/store/skuimg/2022/05/[9300000004099]_20220523143424001.jpg"]
+, ["베어리스타 우유 생크림 케이크", "365", "13", "180", "28", "5", "https://image.istarbucks.co.kr/upload/store/skuimg/2022/05/[9300000004100]_20220523144316602.jpg"]
+, ["블루베리 쿠키 치즈 케이크", "390", "7", "310", "27", "4", "https://image.istarbucks.co.kr/upload/store/skuimg/2022/05/[9300000000913]_20220523144609048.jpg"]
+, ["세븐 레이어 가나슈 케이크", "433", "16", "112", "27", "6", "https://image.istarbucks.co.kr/upload/store/skuimg/2022/05/[9300000002065]_20220523145502021.jpg"]
+, ["청담스타 얼 그레이 밀크 케이크", "310", "13", "60", "20", "4", "https://image.istarbucks.co.kr/upload/store/skuimg/2022/05/[9300000001521]_20220523145258639.jpg"]
+, ["청담스타 오 허니 케이크", "348", "14", "67", "28", "5", "https://image.istarbucks.co.kr/upload/store/skuimg/2022/05/[9300000000882]_20220523145105037.jpg"]
+, ["크레이프 에멘탈 치즈 케이크", "330", "19", "254", "18", "5", "https://image.istarbucks.co.kr/upload/store/skuimg/2022/05/[9300000002064]_20220523145701278.jpg"]
+, ["치킨 베이컨 랩", "381", "6", "1138", "4", "18", "https://image.istarbucks.co.kr/upload/store/skuimg/2023/12/[9300000005046]_20231205083826201.jpg"]
+, ["더블 에그 샐러드 밀 박스", "249", "3.9", "763", "4", "18", "https://image.istarbucks.co.kr/upload/store/skuimg/2022/02/[9300000003523]_20220218132118174.jpg"]
+, ["콥 & 화이트 샐러드 밀 박스", "198", "2.3", "540", "4", "15", "https://image.istarbucks.co.kr/upload/store/skuimg/2022/01/[9300000003832]_20220118171516533.jpg"]
+, ["B.E.L.T. 샌드위치", "448", "7", "976", "5", "20", "https://image.istarbucks.co.kr/upload/store/skuimg/2022/10/[9300000000689]_20221011130103847.jpg"]
+, ["단호박 에그 샐러드 샌드위치", "470", "7", "790", "12", "13", "https://image.istarbucks.co.kr/upload/store/skuimg/2023/06/[9300000004550]_20230613154111265.jpg"]
+, ["당근 산도롱 샌드위치", "460", "6", "992", "9", "19", "https://image.istarbucks.co.kr/upload/store/skuimg/2023/03/[9300000004506]_20230320090823437.jpg"]
+, ["멜팅 치즈 베이컨 샌드위치", "478", "12", "881", "2", "27", "https://image.istarbucks.co.kr/upload/store/skuimg/2023/11/[9300000004827]_20231102130550179.jpg"]
+, ["바비큐 치킨 치즈 치아바타", "320", "4.2", "877", "5", "19", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/04/[5110003062]_20210421162339549.jpg"]
+, ["베이컨 치즈 토스트", "355", "7", "648", "9", "13", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/06/[9300000002178]_20210602104935718.jpg"]
+, ["브렉퍼스트 잉글리쉬 머핀", "355", "6", "742", "2", "17", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/04/[9300000002435]_20210421164422886.jpg"]
+, ["블랙 갈릭 에그 샌드위치", "524", "10", "1007", "13", "22", "https://image.istarbucks.co.kr/upload/store/skuimg/2023/10/[9300000004752]_20231012084214181.jpg"]
+, ["에그에그 샌드위치", "351", "4.8", "713", "4", "16", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/04/[9300000001927]_20210422101307127.jpg"]
+, ["제주 녹차 베이컨 치즈 베이글", "470", "16", "990", "8", "22", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/04/[9300000001387]_20210421134542210.jpg"]
+, ["제주 돼지 풀드포크 샌드위치", "565", "11", "990", "6", "25", "https://image.istarbucks.co.kr/upload/store/skuimg/2022/09/[9300000004337]_20220905131046735.jpg"]
+, ["치즈 포크 커틀릿 샌드위치", "729", "12", "1412", "11", "25", "https://image.istarbucks.co.kr/upload/store/skuimg/2022/10/[9300000004311]_20221011124050797.jpg"]
+, ["치킨 클래식 샌드위치", "411", "6", "993", "2", "24", "https://image.istarbucks.co.kr/upload/store/skuimg/2023/03/[9300000004460]_20230322091331299.jpg"]
+, ["햄&루꼴라 올리브 샌드위치", "353", "4.1", "781", "3", "17", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/11/[9300000001777]_20211103092722580.jpg"]
+, ["트러플 머쉬룸 수프", "155", "8", "423", "3", "3", "https://image.istarbucks.co.kr/upload/store/skuimg/2023/05/[9900000000680]_20230519163033202.jpg"]
+, ["플랜트 미트볼 수프", "222", "2", "930", "7", "8", "https://image.istarbucks.co.kr/upload/store/skuimg/2023/06/[9900000001386]_20230626125948029.jpg"]
+, ["복숭아 가득 핸디 젤리", "85", "0", "0", "21", "0", "https://image.istarbucks.co.kr/upload/store/skuimg/2023/05/[9300000004508]_20230519162911374.jpg"]
+, ["사과 가득 핸디 젤리", "80", "0", "20", "18", "0", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/04/[9300000001911]_20210421164827564.jpg"]
+, ["한 입에 쏙 우리 과일칩(딸기&사과)", "35", "0", "5", "6", "0", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/04/[9300000002408]_20210422110358310.jpg"]
+, ["한라봉 가득 핸디 젤리", "75", "0", "15", "18", "0", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/04/[9300000001912]_20210422111311420.jpg"]
+, ["New 밀크 푸딩", "127", "5", "55", "10", "5", "https://image.istarbucks.co.kr/upload/store/skuimg/2023/09/[9300000002619]_20230907153532262.jpg"]
+, ["New 초콜릿 푸딩", "182", "6", "37", "15", "5", "https://image.istarbucks.co.kr/upload/store/skuimg/2023/07/[9300000002620]_20230711093213412.jpg"]
+, ["오가닉 그릭 요거트 플레인", "93.5", "3.2", "63.3", "4.5", "5.1", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/08/[9300000003231]_20210826102030647.jpg"]
+, ["오가닉 프로틴 그릭 요거트 & 그래놀라", "242", "4.8", "91", "15", "13", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/08/[9300000003232]_20210826102225363.jpg"]
+, ["제주 녹차 푸딩", "139", "4", "56", "16", "5", "https://image.istarbucks.co.kr/upload/store/skuimg/2023/04/[9300000004509]_20230406145005069.jpg"]
+, ["크리스마스 베어리 쿠키 카드", "102", "3.2", "89", "4", "1", "https://image.istarbucks.co.kr/upload/store/skuimg/2023/11/[9300000005004]_20231122145955164.jpg"]
+, ["크리스마스 트리 쿠키 카드", "98", "2.9", "75", "4", "1", "https://image.istarbucks.co.kr/upload/store/skuimg/2023/11/[9300000005005]_20231122150302248.jpg"]
+, ["비스코티 크래커", "570", "3.2", "450", "15", "17", "https://image.istarbucks.co.kr/upload/store/skuimg/2023/08/[9300000004821]_20230823152548984.jpg"]
+, ["하트 젤리", "188", "0", "17", "27", "0", "https://image.istarbucks.co.kr/upload/store/skuimg/2023/12/[9300000004850]_20231227103216971.jpg"]
+, ["로고 코인 다크 초콜릿 (골드)", "255", "13", "0", "13", "5", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/04/[5650003321]_20210421154421752.jpg"]
+, ["로고 코인 밀크 초콜릿 (실버)", "256", "9", "50", "30", "4", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/04/[5650003322]_20210421154642517.jpg"]
+, ["리저브 초콜릿 세트", "181", "6", "18", "19", "2", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/04/[9300000001610]_20210430112116995.jpg"]
+, ["제주 오름 초콜릿 세트", "570", "21", "37", "57", "7", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/04/[9300000001257]_20210421141438783.jpg"]
+, ["커티스 쿨릭 러브스 젤리(레드)", "188", "0", "17", "27", "0", "https://image.istarbucks.co.kr/upload/store/skuimg/2023/02/[9300000004500]_20230217132227166.jpg"]
+, ["커티스 쿨릭 러브스 젤리(핑크)", "188", "0", "17", "27", "0", "https://image.istarbucks.co.kr/upload/store/skuimg/2023/02/[9300000004498]_20230217132134719.jpg"]
+, ["클로버 파베 초콜릿", "220", "12", "15", "5", "4", "https://image.istarbucks.co.kr/upload/store/skuimg/2023/10/[9300000004952]_20231017135829027.jpg"]
+, ["홀리데이 캘린더 초콜릿", "957", "36", "33", "59", "13", "https://image.istarbucks.co.kr/upload/store/skuimg/2023/11/[9300000005003]_20231122145600898.jpg"]
+, ["다크 초콜릿 카우보이 쿠키", "427", "10", "465", "30", "5", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/04/[5650003319]_20210421133114995.jpg"]
+, ["청크 초콜릿 쿠키 틴 세트", "212", "6", "143", "22", "2", "https://image.istarbucks.co.kr/upload/store/skuimg/2023/10/[9300000004942]_20231012141223325.jpg"]
+, ["초콜릿 월넛 돔 쿠키", "441", "12", "300", "34", "5", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/04/[9300000001785]_20210422124351504.jpg"]
+, ["화이트 초콜릿 카우보이 쿠키", "427", "11", "537", "31", "6", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/04/[5650003320]_20210422104923538.jpg"]
+, ["까망베르 치즈 피낭시에", "163", "5", "138", "10", "4", "https://image.istarbucks.co.kr/upload/store/skuimg/2023/03/[9300000004134]_20230309175137008.jpg"]
+, ["미키 마들렌", "128", "4.5", "61", "6", "2", "https://image.istarbucks.co.kr/upload/store/skuimg/2023/10/[9300000004852]_20231004085501570.jpg"]
+, ["미키 마카롱", "238", "8", "35", "21", "4", "https://image.istarbucks.co.kr/upload/store/skuimg/2023/10/[9300000004851]_20231004085751948.jpg"]
+, ["바닐라 마카롱", "143", "1.8", "12", "14", "3", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/04/[5110008078]_20210421132713182.jpg"]
+, ["블루베리 마카롱", "160", "1.9", "26", "16", "3", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/04/[5110008075]_20210421132809471.jpg"]
+, ["새코롬 한라봉 마들렌", "240", "12", "70", "7", "2", "https://image.istarbucks.co.kr/upload/store/skuimg/2022/09/[9300000004339]_20220905130835010.jpg"]
+, ["쇼콜라 피낭시에", "178", "6", "147", "11", "3", "https://image.istarbucks.co.kr/upload/store/skuimg/2022/06/[9300000004135]_20220603101215100.jpg"]
+, ["코시롱 땅콩 마들렌", "260", "10", "90", "11", "2", "https://image.istarbucks.co.kr/upload/store/skuimg/2022/09/[9300000004338]_20220905130522600.jpg"]
+, ["하트 스트로베리 마카롱", "162", "2", "30", "15", "2", "https://image.istarbucks.co.kr/upload/store/skuimg/2023/03/[9300000004517]_20230302155837165.jpg"]
+, ["더블 치즈 베이글 칩", "295", "6", "240", "14", "6", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/04/[9300000002517]_20210421163620436.jpg"]
+, ["딸기&우리 밀 카스텔라", "0", "0", "0", "0", "0", "https://image.istarbucks.co.kr/upload/store/skuimg/2023/08/[9300000004634]_20230823153052377.jpg"]
+, ["리얼 두부칩", "155", "1", "190", "6", "4", "https://image.istarbucks.co.kr/upload/store/skuimg/2022/03/[9300000004045]_20220317080849493.jpg"]
+, ["버터바", "285", "11", "150", "15", "2", "https://image.istarbucks.co.kr/upload/store/skuimg/2023/06/[9300000004784]_20230613153946645.jpg"]
+, ["심플리치클껌", "3", "0", "0", "2", "0", "https://image.istarbucks.co.kr/upload/store/skuimg/2023/02/[9300000003510]_20230209152944291.jpg"]
+, ["씨프렌즈 캔디", "196", "0", "5", "34", "0", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/04/[9300000001058]_20210430112553143.jpg"]
+, ["아몬드 토피넛 캔디", "316", "9", "75", "33", "1", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/04/[9300000002621]_20210422100435715.jpg"]
+, ["오도독 건강한 넛&블루베리", "180", "2", "1", "3", "6", "https://image.istarbucks.co.kr/upload/store/skuimg/2023/10/[9300000004940]_20231020102848280.jpg"]
+, ["유산균 옐로푸드 쉐이크", "130", "1", "115", "11", "6", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/06/[9300000003249]_20210622110500147.jpg"]
+, ["자일리톨 캔디 크리스탈 레몬", "66", "0", "0", "0", "0", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/04/[9300000002556]_20210422111709262.jpg"]
+, ["자일리톨 캔디 크리스탈 민트", "65", "0", "0", "0", "0", "https://image.istarbucks.co.kr/upload/store/skuimg/2020/07/[9300000002727]_20200724104844205.jpg"]
+, ["칩 앤 데일 그래놀라 볼", "141", "1.2", "25", "6", "3", "https://image.istarbucks.co.kr/upload/store/skuimg/2023/10/[9300000004820]_20231004090028198.jpg"]
+, ["콜라겐 레드푸드 쉐이크", "145", "1", "110", "11", "9", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/06/[9300000003250]_20210622110556034.jpg"]
+, ["프로틴 블랙푸드 쉐이크 ", "145", "1.1", "260", "11", "13", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/06/[9300000003251]_20210622110700186.jpg"]
+, ["한 입에 쏙 카스텔라", "226", "3.1", "60.9", "23.6", "4.5", "https://image.istarbucks.co.kr/upload/store/skuimg/2022/10/[9300000002718]_20221020095146597.jpg"]
+, ["한입에 쏙 고구마", "249", "0", "24", "16", "2", "https://image.istarbucks.co.kr/upload/store/skuimg/2022/05/[9300000004212]_20220520084511791.jpg"]
+, ["한입에 쏙 공주 알밤", "120", "0", "0.6", "2.2", "2.7", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/04/[9300000002000]_20210422110821472.jpg"]
+, ["요거트 젤라또", "153", "1.7", "56", "20", "4", "https://image.istarbucks.co.kr/upload/store/skuimg/2023/08/[9300000004515]_20230817100836998.jpg"]
+, ["피스타치오 젤라또", "238", "4.7", "53", "17", "6", "https://image.istarbucks.co.kr/upload/store/skuimg/2023/08/[9300000004514]_20230817100727397.jpg"]
+		];
+		for(let i = 0; i < list.length; i++){
+			list[i].push[i]; // 인덱스
+			list[i].push["b"]; // b:버튼, i:이미지
+		}
+		makeTbl();
+		setSize();
+		window.addEventListener("resize", function() {
+			setSize();
+		});
+	};
+</script>
+</head>
+<body style="min-width:300px">
+	<h3 style="font-size:16px">표의 가장 위의 머리글을 누르시면 오름차순, 내림차순 정렬이 됩니다 ! <a href="https://www.starbucks.co.kr/menu/food_list.do">→ 스타벅스 푸드 홈페이지</a></h3>
+	
+	<div style="display:flex;">
+		<span style="font-size:16px;">필터 :&nbsp;</span><input style="width:100px" id="input1" onchange="setFilter()" maxlength="10"/>
+		<span style="font-size:16px;margin-left:auto;">2024-01-12</span>
+	</div>
+	<table id="tbl" style="margin-top:3px;" width="100%" border="0" cellspacing="0" cellpadding="3"/>
+</body>
+</html>

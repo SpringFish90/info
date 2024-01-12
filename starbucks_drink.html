@@ -1,0 +1,293 @@
+<html>
+<head>
+<style>
+  th, td {
+	border: 1px solid #888888;
+  }
+  th {
+	background-color : #88ccff;
+  }
+</style>
+<script src="https://code.jquery.com/jquery-latest.min.js"></script>
+<script>
+	var list = [];
+	var orderBy = "asc";
+	makeTbl = function(){
+		var str = `<table id="tbl">
+	<tr>
+		<th style="font-size:1rem;" onclick="mySort(0)"><span id="span01">음료<span></th>
+		<th style="font-size:0.8rem;" onclick="mySort(6)">카페인(mg)</th>
+		<th style="font-size:0.8rem;" onclick="mySort(1)">칼로리(kcal)</th>
+		<th style="font-size:0.8rem;" onclick="mySort(4)">나트륨(mg)</th>
+		<th style="font-size:0.8rem;" onclick="mySort(2)">당류(g)</th>
+		<th style="font-size:0.8rem;" onclick="mySort(5)"><span id="span02">포화지방(g)</span></th>
+		<th style="font-size:0.8rem;" onclick="mySort(3)">단백질(g)</th>
+		<th style="font-size:0.8rem;">이미지</th>
+	</tr>
+`;
+		for(let i=0; i < list.length; i++){
+			let one = list[i];
+			str += '<tr>';
+			str += '<td style="font-size:1rem;">'+one[0]+'</td>';
+			str += '<td style="font-size:1rem;text-align:right">'+one[6]+'</td>';
+			str += '<td style="font-size:1rem;text-align:right">'+one[1]+'</td>';
+			str += '<td style="font-size:1rem;text-align:right">'+one[4]+'</td>';
+			str += '<td style="font-size:1rem;text-align:right">'+one[2]+'</td>';
+			str += '<td style="font-size:1rem;text-align:right">'+one[5]+'</td>';
+			str += '<td style="font-size:1rem;text-align:right">'+one[3]+'</td>';
+			if(one[9] == "i"){
+				str += '<td style="text-align:center"><a href="' + one[7] + '" target="_blank"><img style="width:5rem;height:5.5rem" src="' + one[7] + '" target="_blank" alt="'+one[0]+'"/></a></td>';
+			} else {
+				str += '<td style="text-align:center"><button style="font-size:0.8rem;" onclick="showImage('+(i+2)+')">보기</button></td>';
+			}
+			str += '</tr>';
+		};
+		str += '</table>';
+		$("#tbl").html(str);
+		if($("#input1").val() != ""){
+			setFilter();
+		}
+	};
+
+	mySort = function(colIdx){
+		if(orderBy != "asc"){
+			orderBy = "asc";
+		} else {
+			orderBy = "desc";
+		}
+		if(orderBy == "asc"){
+			list.sort(function(a, b){
+				console.log(a[colIdx], b[colIdx], (isNaN(a[colIdx]) ? a[colIdx] : Number(a[colIdx]))
+				> (isNaN(b[colIdx]) ? b[colIdx] : Number(b[colIdx])));
+			  if((isNaN(a[colIdx]) ? a[colIdx] : Number(a[colIdx]))
+				> (isNaN(b[colIdx]) ? b[colIdx] : Number(b[colIdx]))){
+				return 1;
+			  } else {
+				return -1;
+			  }
+			});
+		} else {
+			list.sort(function(a, b){
+			  if((isNaN(a[colIdx]) ? a[colIdx] : Number(a[colIdx]))
+				< (isNaN(b[colIdx]) ? b[colIdx] : Number(b[colIdx]))){
+				return 1;
+			  } else {
+				return -1;
+			  }
+			});
+		}
+		makeTbl();
+	};
+
+	setFilter = function(){
+		var trList = $("#tbl tr");
+		for(let i=1; i < trList.length; i++){
+			if(trList[i].children[0].innerText.indexOf($("#input1").val()) > -1){
+				$("#tbl tr:nth-child("+(i+1)+")").css("display","");
+			} else {
+				$("#tbl tr:nth-child("+(i+1)+")").css("display","none");
+			}
+		}
+	};
+
+	showImage = function(nth){
+		let one = list[nth-2];
+		list[nth-2][9] = "i"; // 이미지
+		$("#tbl tr:nth-child("+nth+") td:nth-child(8)").append('<a href="' + one[7] + '" target="_blank"><img style="width:5rem;height:5.5rem" src="' + one[7] + '" target="_blank" alt="'+one[0]+'"/></a>');
+		$("#tbl tr:nth-child("+nth+") td:nth-child(8) button").remove();
+	};
+	
+	setSize = function(){
+		let size = 16;
+		$("html").css("font-size", size + "px");
+		while($("#span01").height() < $("#span02").height() && size > 11){
+			$("html").css("font-size", (--size) + "px");
+		}
+	};
+
+	window.onload = function(){
+		list = [			 
+  ["나이트로 바닐라 크림", "80", "10", "1", "40", "2", "232", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/04/[9200000002487]_20210426091745467.jpg"]
+, ["나이트로 콜드 브루", "5", "0", "0", "5", "0", "245", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/04/[9200000000479]_20210426091843897.jpg"]
+, ["돌체 콜드 브루", "265", "29", "8", "130", "9", "155", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/04/[9200000002081]_20210415133656839.jpg"]
+, ["리저브 나이트로", "5", "0", "0", "0", "0", "190", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/02/[9200000002407]_20210225095106743.jpg"]
+, ["리저브 콜드 브루", "5", "0", "0", "0", "0", "190", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/02/[9200000002093]_20210225094415504.jpg"]
+, ["민트 콜드 브루", "100", "23", "0", "0", "0", "415", "https://image.istarbucks.co.kr/upload/store/skuimg/2022/10/[9200000004312]_20221005145029134.jpg"]
+, ["바닐라 크림 콜드 브루", "125", "11", "3", "58", "6", "155", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/04/[9200000000487]_20210430112319040.jpg"]
+, ["시그니처 더 블랙 콜드 브루", "25", "0", "0", "50", "0", "680", "https://image.istarbucks.co.kr/upload/store/skuimg/2023/07/[9200000003661]_20230721170207026.jpg"]
+, ["여수 윤슬 헤이즐넛 콜드브루", "245", "27", "5", "85", "9", "53", "https://image.istarbucks.co.kr/upload/store/skuimg/2023/08/[9200000004750]_20230801101408624.jpg"]
+, ["오트 콜드 브루", "120", "14", "1", "95", "0.3", "65", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/04/[9200000003285]_20210416154437069.jpg"]
+, ["제주 비자림 콜드 브루", "360", "39", "11", "140", "8", "305", "https://image.istarbucks.co.kr/upload/store/skuimg/2022/03/[9200000002672]_20220311105511600.jpg"]
+, ["콜드 브루", "5", "0", "0", "11", "0", "155", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/04/[9200000000038]_20210430113202458.jpg"]
+, ["콜드 브루", "5", "0", "0", "25", "0", "360", "https://image.istarbucks.co.kr/upload/store/skuimg/2023/07/[9200000004770]_20230720103902092.jpg"]
+, ["콜드 브루 몰트", "505", "41", "7", "150", "20", "190", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/02/[9200000001636]_20210225093600536.jpg"]
+, ["콜드 브루 플로트", "225", "18", "3", "70", "10", "190", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/02/[9200000001635]_20210225092236748.jpg"]
+, ["아이스 커피", "5", "0", "0", "10", "0", "140", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/04/[106509]_20210430111852870.jpg"]
+, ["오늘의 커피", "5", "0", "0", "15", "0", "260", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/04/[2]_20210430111934117.jpg"]
+, ["아이스 푸른 용 헤이즐넛 라떼", "225", "17", "6", "90", "9", "150", "https://image.istarbucks.co.kr/upload/store/skuimg/2023/12/[9200000004985]_20231221111312120.jpg"]
+, ["푸른 용 헤이즐넛 라떼 ", "265", "21", "8", "120", "11", "150", "https://image.istarbucks.co.kr/upload/store/skuimg/2023/12/[9200000004982]_20231221111203546.jpg"]
+, ["에스프레소 콘 파나", "30", "1", "0", "0", "1.5", "75", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/04/[30]_20210415144252244.jpg"]
+, ["에스프레소 마키아또", "10", "0", "1", "0", "0", "75", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/04/[25]_20210415144211211.jpg"]
+, ["아이스 카페 아메리카노", "10", "0", "1", "5", "0", "150", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/04/[110563]_20210426095937808.jpg"]
+, ["카페 아메리카노", "10", "0", "1", "5", "0", "150", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/04/[94]_20210430103337006.jpg"]
+, ["아이스 카라멜 마키아또", "190", "22", "6", "110", "4.6", "75", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/04/[110582]_20210415142706078.jpg"]
+, ["카라멜 마키아또", "200", "22", "8", "130", "5", "75", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/04/[126197]_20210415154609863.jpg"]
+, ["아이스 카푸치노", "110", "9", "6", "90", "3.5", "75", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/04/[110601]_20210415143400773.jpg"]
+, ["카푸치노", "110", "8", "6", "70", "3", "75", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/04/[38]_20210415154821846.jpg"]
+, ["더 그린 쑥 크림 라떼", "365", "33", "11", "570", "11", "170", "https://image.istarbucks.co.kr/upload/store/skuimg/2023/02/[9200000004528]_20230206091947981.jpg"]
+, ["라벤더 카페 브레베", "400", "30", "8", "140", "22", "105", "https://image.istarbucks.co.kr/upload/store/skuimg/2022/04/[9200000004119]_20220412083025862.png"]
+, ["바닐라 빈 라떼", "245", "27", "9", "150", "6", "210", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/02/[9200000001939]_20210225094313315.jpg"]
+, ["사케라또 비안코 오버 아이스", "270", "14", "3", "45", "18", "315", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/02/[9200000002095]_20210225095033382.jpg"]
+, ["스타벅스 1호점 바닐라 빈 라떼", "234", "27", "9", "150", "6", "210", "https://image.istarbucks.co.kr/upload/store/skuimg/2023/07/[9200000004732]_20230705095514946.jpg"]
+, ["스타벅스 1호점 카페 라떼", "191", "15", "10", "150", "6", "210", "https://image.istarbucks.co.kr/upload/store/skuimg/2023/07/[9200000004728]_20230705095319596.jpg"]
+, ["스타벅스 돌체 라떼", "255", "39", "12", "190", "2.6", "150", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/04/[128692]_20210426091933665.jpg"]
+, ["아이스 더 그린 쑥 크림 라떼", "325", "28", "9", "490", "10", "170", "https://image.istarbucks.co.kr/upload/store/skuimg/2023/02/[9200000004529]_20230206091908618.jpg"]
+, ["아이스 라벤더 카페 브레베", "335", "27", "6", "110", "18", "105", "https://image.istarbucks.co.kr/upload/store/skuimg/2022/04/[9200000004120]_20220412082952150.png"]
+, ["아이스 바닐라 빈 라떼", "155", "20", "5", "75", "2.9", "210", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/02/[9200000001941]_20210225094346653.jpg"]
+, ["아이스 스타벅스 1호점 바닐라 빈 라떼", "159", "21", "6", "90", "2.9", "210", "https://image.istarbucks.co.kr/upload/store/skuimg/2023/07/[9200000004734]_20230705095557184.jpg"]
+, ["아이스 스타벅스 1호점 카페 라떼", "117", "9", "6", "100", "3.2", "210", "https://image.istarbucks.co.kr/upload/store/skuimg/2023/07/[9200000004730]_20230705095423060.jpg"]
+, ["아이스 스타벅스 돌체 라떼", "230", "35", "10", "145", "2.5", "150", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/04/[128695]_20210426092031969.jpg"]
+, ["아이스 카페 라떼", "110", "8", "6", "75", "3.5", "75", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/04/[110569]_20210415143035989.jpg"]
+, ["카페 라떼", "180", "13", "10", "115", "5", "75", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/04/[41]_20210415133833725.jpg"]
+, ["아이스 카페 모카", "250", "21", "7", "70", "8", "95", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/04/[110566]_20210415134334280.jpg"]
+, ["아이스 화이트 초콜릿 모카", "335", "41", "8", "160", "8", "75", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/04/[110572]_20210415155545375.jpg"]
+, ["카페 모카", "290", "25", "10", "105", "9", "95", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/04/[46]_20210415134438165.jpg"]
+, ["클래식 민트 모카", "335", "43", "4", "200", "0.7", "210", "https://image.istarbucks.co.kr/upload/store/skuimg/2022/10/[9200000004313]_20221005145156959.jpg"]
+, ["화이트 초콜릿 모카", "405", "47", "12", "230", "11", "75", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/04/[128192]_20210415155639126.jpg"]
+, ["바닐라 플랫 화이트", "220", "23", "9", "130", "5", "260", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/04/[9200000002406]_20210415135507733.jpg"]
+, ["바닐라 스타벅스 더블 샷", "125", "14", "2", "30", "4.5", "150", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/04/[110612]_20210415133425373.jpg"]
+, ["블론드 바닐라 더블 샷 마키아또", "315", "31", "8", "130", "12", "170", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/04/[9200000002950]_20210426150654756.jpg"]
+, ["사케라또 아포가토", "290", "30", "4", "70", "10", "210", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/03/[9200000003505]_20210322093241535.jpg"]
+, ["스파클링 시트러스 에스프레소", "65", "15", "0", "5", "0", "105", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/03/[9200000003506]_20210322093317854.jpg"]
+, ["아이스 블론드 바닐라 더블 샷 마키아또", "195", "22", "5", "65", "6", "170", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/04/[9200000002953]_20210427132718157.jpg"]
+, ["에스프레소", "5", "0", "0", "0", "0", "75", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/04/[20]_20210415144112678.jpg"]
+, ["커피 스타벅스 더블 샷", "125", "14", "3", "28.5", "5", "150", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/04/[110611]_20210415132507539.jpg"]
+, ["클래식 아포가토", "240", "18", "4", "70", "10", "210", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/02/[9200000001631]_20210225090916684.jpg"]
+, ["헤이즐넛 스타벅스 더블 샷", "125", "14", "3", "28.5", "5", "150", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/04/[110614]_20210415132333109.jpg"]
+, ["에스프레소 프라푸치노", "145", "29", "2", "115", "1.1", "120", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/04/[168007]_20210415144337428.jpg"]
+, ["자바 칩 프라푸치노", "340", "42", "6", "180", "9", "100", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/04/[168016]_20210415154152122.jpg"]
+, ["카라멜 프라푸치노", "300", "39", "4", "190", "7", "85", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/04/[168010]_20210415154711116.jpg"]
+, ["화이트 초콜릿 모카 프라푸치노", "265", "43", "4", "160", "6", "85", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/04/[168013]_20210415155746379.jpg"]
+, ["제주 까망 크림 프라푸치노", "600", "79", "9", "330", "7", "0", "https://image.istarbucks.co.kr/upload/store/skuimg/2020/09/[9200000002088]_20200921171733532.jpg"]
+, ["제주 쑥떡 크림 프라푸치노", "460", "57", "8", "250", "10", "0", "https://image.istarbucks.co.kr/upload/store/skuimg/2022/03/[9200000002090]_20220329144732789.jpg"]
+, ["제주 유기농 말차로 만든 크림 프라푸치노", "230", "28", "5", "150", "7", "60", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/04/[9200000002502]_20210426100408048.jpg"]
+, ["초콜릿 크림 칩 프라푸치노", "300", "40", "6", "160", "7", "10", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/04/[168066]_20210415154429750.jpg"]
+, ["피스타치오 아보카도 초콜릿 프라푸치노", "295", "36", "3", "170", "1.3", "5", "https://image.istarbucks.co.kr/upload/store/skuimg/2023/05/[9200000004713]_20230524144814035.jpg"]
+, ["화이트 타이거 프라푸치노", "410", "57", "5", "220", "14", "0", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/04/[9200000002403]_20210419131548656.jpg"]
+, ["망고 패션 티 블렌디드", "150", "29", "2", "105", "0", "0", "https://image.istarbucks.co.kr/upload/store/skuimg/2023/02/[9200000004512]_20230207150514347.jpg"]
+, ["북한산 레몬 얼 그레이 블렌디드", "110", "25", "0", "10", "0.1", "8", "https://image.istarbucks.co.kr/upload/store/skuimg/2023/11/[9200000004716]_20231115093249233.jpg"]
+, ["스타벅스 클래식 밀크티 블렌디드", "315", "37", "3", "55", "13", "60", "https://image.istarbucks.co.kr/upload/store/skuimg/2023/12/[9200000004945]_20231205083518102.jpg"]
+, ["여수 바다 유자 블렌디드", "235", "57", "0", "10", "0", "0", "https://image.istarbucks.co.kr/upload/store/skuimg/2023/09/[9200000004870]_20230905110300360.jpg"]
+, ["더 그린 쑥 블렌디드", "370", "40", "13", "610", "6", "157", "https://image.istarbucks.co.kr/upload/store/skuimg/2023/02/[9200000004527]_20230206091612170.jpg"]
+, ["딸기 딜라이트 요거트 블렌디드", "370", "57", "9", "110", "4.3", "0", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/04/[9200000003276]_20210416154001403.jpg"]
+, ["망고 바나나 블렌디드", "290", "45", "4", "130", "0.9", "0", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/04/[169001]_20210419130701792.jpg"]
+, ["코튼 스카이 요거트 블렌디드", "270", "41", "4", "65", "1.8", "0", "https://image.istarbucks.co.kr/upload/store/skuimg/2023/09/[9200000004871]_20230922091835355.jpg"]
+, ["피치 요거트 블렌디드", "240", "35", "2", "75", "0.8", "0", "https://image.istarbucks.co.kr/upload/store/skuimg/2023/05/[9200000004717]_20230524144903032.jpg"]
+, ["딸기 아사이 레모네이드 스타벅스 리프레셔", "265", "62", "1", "0", "0", "73", "https://image.istarbucks.co.kr/upload/store/skuimg/2023/07/[9200000004753]_20230720103623021.jpg"]
+, ["딸기 아사이 레모네이드 스타벅스 리프레셔", "105", "24", "1", "0", "0", "30", "https://image.istarbucks.co.kr/upload/store/skuimg/2022/08/[9200000003763]_20220803131322551.jpg"]
+, ["망고 용과 레모네이드 스타벅스 리프레셔", "95", "23", "0", "35", "0", "25", "https://image.istarbucks.co.kr/upload/store/skuimg/2023/07/[9200000004439]_20230710134159744.jpg"]
+, ["퍼플 드링크 위드 망고 용과 스타벅스 리프레셔", "90", "16", "0", "70", "0", "25", "https://image.istarbucks.co.kr/upload/store/skuimg/2023/07/[9200000004442]_20230710134637578.jpg"]
+, ["핑크 드링크 위드 딸기 아사이 스타벅스 리프레셔", "100", "18", "1", "40", "0", "30", "https://image.istarbucks.co.kr/upload/store/skuimg/2022/08/[9200000003766]_20220803130957907.jpg"]
+, ["레드 애플 피지오", "110", "26", "0", "10", "0", "0", "https://image.istarbucks.co.kr/upload/store/skuimg/2023/10/[9200000004949]_20231005084714271.jpg"]
+, ["아이스크림 레드 애플 피지오", "240", "36", "2", "45", "5", "0", "https://image.istarbucks.co.kr/upload/store/skuimg/2023/10/[9200000004948]_20231005084633784.jpg"]
+, ["여수 바다 자몽 피지오", "250", "45", "1", "105", "0", "0", "https://image.istarbucks.co.kr/upload/store/skuimg/2023/09/[9200000004751]_20230907153225204.jpg"]
+, ["유자 패션 피지오", "145", "36", "0", "5", "0", "0", "https://image.istarbucks.co.kr/upload/store/skuimg/2022/05/[9200000004121]_20220517102911610.jpg"]
+, ["제주팔삭 셔벗 피지오", "165", "38", "0", "5", "0", "0", "https://image.istarbucks.co.kr/upload/store/skuimg/2023/10/[9200000004946]_20231005084542114.jpg"]
+, ["제주팔삭 피지오", "150", "34", "0", "5", "0", "0", "https://image.istarbucks.co.kr/upload/store/skuimg/2023/10/[9200000004947]_20231005084610514.jpg"]
+, ["쿨 라임 피지오", "105", "25", "0", "20", "0", "110", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/04/[107051]_20210419112151972.jpg"]
+, ["피치 딸기 피지오", "145", "26", "0", "20", "0", "37", "https://image.istarbucks.co.kr/upload/store/skuimg/2023/05/[9200000004567]_20230524144959475.jpg"]
+, ["레몬 캐모마일 블렌드 티", "130", "30", "0", "10", "0", "0", "https://image.istarbucks.co.kr/upload/store/skuimg/2023/12/[9200000004990]_20231212110704134.jpg"]
+, ["아이스 레몬 캐모마일 블렌드 티", "130", "30", "0", "10", "0", "0", "https://image.istarbucks.co.kr/upload/store/skuimg/2023/12/[9200000004991]_20231212110749533.jpg"]
+, ["말차 티라미수 라떼", "405", "38", "11", "220", "15", "75", "https://image.istarbucks.co.kr/upload/store/skuimg/2023/11/[9200000004954]_20231127093740735.jpg"]
+, ["스노우 말차 라떼", "370", "32", "11", "210", "14", "65", "https://image.istarbucks.co.kr/upload/store/skuimg/2023/12/[9200000004988]_20231212110855121.jpg"]
+, ["아이스 말차 티라미수 라떼", "345", "33", "8", "170", "13", "75", "https://image.istarbucks.co.kr/upload/store/skuimg/2023/11/[9200000004955]_20231127093837610.jpg"]
+, ["아이스 스노우 말차 라떼", "310", "27", "8", "160", "12", "65", "https://image.istarbucks.co.kr/upload/store/skuimg/2023/12/[9200000004989]_20231212110950941.jpg"]
+, ["아이스 푸른 용 밀크 티", "295", "24", "4", "75", "15", "80", "https://image.istarbucks.co.kr/upload/store/skuimg/2023/12/[9200000004961]_20231221111057333.jpg"]
+, ["푸른 용 클래식 밀크 티", "340", "28", "4", "87", "17", "95", "https://image.istarbucks.co.kr/upload/store/skuimg/2023/12/[9200000004958]_20231221110529771.jpg"]
+, ["민트 블렌드 티", "0", "0", "0", "0", "0", "0", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/04/[4004000000056]_20210415135215632.jpg"]
+, ["아이스 민트 블렌드 티", "0", "0", "0", "0", "0", "0", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/04/[4004000000059]_20210415141656038.jpg"]
+, ["아이스 얼 그레이 티", "0", "0", "0", "0", "0", "50", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/04/[4004000000039]_20210415142055860.jpg"]
+, ["아이스 유스베리 티", "0", "0", "0", "0", "0", "20", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/04/[9200000000229]_20210415142219481.jpg"]
+, ["아이스 유자 민트 티", "145", "37", "0", "5", "0", "0", "https://image.istarbucks.co.kr/upload/store/skuimg/2022/04/[9200000002959]_20220411155904911.jpg"]
+, ["아이스 잉글리쉬 브렉퍼스트 티", "0", "0", "0", "0", "0", "40", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/04/[4004000000019]_20210415142323353.jpg"]
+, ["아이스 제주 유기 녹차", "0", "0", "0", "0", "0", "16", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/04/[400400000094]_20210415230316469.jpg"]
+, ["아이스 제주팔삭 & 자몽 허니 블랙 티", "140", "38", "0", "5", "0", "27", "https://image.istarbucks.co.kr/upload/store/skuimg/2023/10/[9200000004944]_20231005084446254.jpg"]
+, ["아이스 캐모마일 블렌드 티", "0", "0", "0", "0", "0", "0", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/04/[4004000000079]_20210415143641139.jpg"]
+, ["아이스 히비스커스 블렌드 티", "0", "0", "0", "0", "0", "0", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/04/[4004000000069]_20210415143811231.jpg"]
+, ["얼 그레이 티", "0", "0", "0", "0", "0", "70", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/04/[4004000000036]_20210415143933425.jpg"]
+, ["유스베리 티", "0", "0", "0", "0", "0", "20", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/04/[9200000000226]_20210415144434521.jpg"]
+, ["유자 민트 티", "235", "58", "0", "10", "0", "0", "https://image.istarbucks.co.kr/upload/store/skuimg/2022/04/[9200000002956]_20220411155551915.jpg"]
+, ["잉글리쉬 브렉퍼스트 티", "0", "0", "0", "0", "0", "70", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/04/[4004000000016]_20210415153648533.jpg"]
+, ["자몽 허니 블랙 티", "125", "30", "0", "5", "0", "70", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/04/[9200000000187]_20210419131229539.jpg"]
+, ["제주 유기 녹차", "0", "0", "0", "0", "0", "16", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/04/[400400000091]_20210415132229904.jpg"]
+, ["제주팔삭 & 자몽 허니 블랙 티", "140", "38", "0", "5", "0", "70", "https://image.istarbucks.co.kr/upload/store/skuimg/2023/10/[9200000004943]_20231005084424843.jpg"]
+, ["캐모마일 블렌드 티", "0", "0", "0", "0", "0", "0", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/04/[4004000000076]_20210415154920731.jpg"]
+, ["히비스커스 블렌드 티", "0", "0", "0", "0", "0", "0", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/04/[4004000000066]_20210415155836395.jpg"]
+, ["레드 파워 패션 티", "190", "31", "1", "40", "0", "33", "https://image.istarbucks.co.kr/upload/store/skuimg/2023/04/[9200000004566]_20230407153247174.jpg"]
+, ["아이스 자몽 허니 블랙 티", "345", "79", "1", "10", "0", "75", "https://image.istarbucks.co.kr/upload/store/skuimg/2023/07/[9200000004769]_20230720103743478.jpg"]
+, ["아이스 자몽 허니 블랙 티", "125", "30", "0", "5", "0", "30", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/04/[9200000000190]_20210419131723532.jpg"]
+, ["돌체 블랙 밀크 티", "250", "34", "8", "115", "5", "60", "https://image.istarbucks.co.kr/upload/store/skuimg/2022/02/[9200000002963]_20220203082330522.jpg"]
+, ["스타벅스 클래식 밀크 티", "299", "31", "5", "80", "13", "190", "https://image.istarbucks.co.kr/upload/store/skuimg/2023/09/[9200000004933]_20230914141717984.jpg"]
+, ["스타벅스 클래식 밀크 티 보틀", "485", "51", "7", "130", "21", "195", "https://image.istarbucks.co.kr/upload/store/skuimg/2023/10/[9200000004942]_20231005093131816.jpg"]
+, ["아이스 돌체 블랙 밀크 티", "210", "31", "6", "85", "3.7", "35", "https://image.istarbucks.co.kr/upload/store/skuimg/2022/02/[9200000002966]_20220203082502987.jpg"]
+, ["아이스 스타벅스 클래식 밀크 티", "198", "21", "3", "50", "9", "80", "https://image.istarbucks.co.kr/upload/store/skuimg/2023/09/[9200000004936]_20230914141811407.jpg"]
+, ["아이스 얼 그레이 바닐라 티 라떼", "325", "33", "8", "115", "10", "29", "https://image.istarbucks.co.kr/upload/store/skuimg/2023/01/[9200000004288]_20230118085139616.jpg"]
+, ["아이스 제주 유기농 말차로 만든 라떼", "155", "16", "6", "95", "3.6", "60", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/04/[9200000002499]_20210419130902541.jpg"]
+, ["아이스 차이 티 라떼", "190", "31", "5", "70", "3", "70", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/04/[135612]_20210415142512793.jpg"]
+, ["얼 그레이 바닐라 티 라떼", "355", "36", "9", "130", "11", "55", "https://image.istarbucks.co.kr/upload/store/skuimg/2023/01/[9200000004285]_20230118084943128.jpg"]
+, ["제주 유기농 말차로 만든 라떼", "205", "20", "9", "130", "5", "60", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/04/[9200000002496]_20210419131039350.jpg"]
+, ["차이 티 라떼", "200", "31", "6", "70", "3", "70", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/04/[135608]_20210415154244810.jpg"]
+, ["아이스 티라미수 초콜릿", "335", "34", "7", "130", "11", "10", "https://image.istarbucks.co.kr/upload/store/skuimg/2023/11/[9200000004953]_20231127094019543.jpg"]
+, ["티라미수 초콜릿", "420", "41", "11", "200", "14", "10", "https://image.istarbucks.co.kr/upload/store/skuimg/2023/11/[9200000004952]_20231127093937845.jpg"]
+, ["스타벅스 딸기 라떼", "150", "24", "3", "55", "2", "0", "https://image.istarbucks.co.kr/upload/store/skuimg/2023/12/[9200000004939]_20231231002227505.jpg"]
+, ["핑크 폼 딸기 라떼", "195", "26", "4", "70", "5", "0", "https://image.istarbucks.co.kr/upload/store/skuimg/2023/12/[9200000004979]_20231221111415348.jpg"]
+, ["딸기 콜드폼 초콜릿", "255", "45", "7", "110", "2", "5", "https://image.istarbucks.co.kr/upload/store/skuimg/2023/12/[9200000004950]_20231204090636952.jpg"]
+, ["시그니처 핫 초콜릿", "500", "52", "15", "105", "9", "15", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/04/[72]_20210415140949967.jpg"]
+, ["아이스 시그니처 초콜릿", "325", "32", "10", "70", "7", "15", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/04/[110621]_20210415140901611.jpg"]
+, ["플러피 판다 아이스 초콜릿", "415", "39", "11", "150", "16", "0", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/04/[9200000003658]_20210422080248176.jpg"]
+, ["플러피 판다 핫 초콜릿", "470", "48", "12", "160", "17", "0", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/04/[9200000002594]_20210422080327783.jpg"]
+, ["딸기 콜드폼 딸기 라떼", "235", "41", "6", "110", "2", "0", "https://image.istarbucks.co.kr/upload/store/skuimg/2023/11/[9200000004951]_20231102101647442.jpg"]
+, ["스타벅스 슬래머", "235", "55", "0", "0", "0", "0", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/04/[9200000003659]_20210428134252131.jpg"]
+, ["스팀 우유", "215", "18", "13", "173", "7", "0", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/04/[17]_20210426095334934.jpg"]
+, ["아이스 제주 까망 라떼", "440", "45", "10", "210", "11", "0", "https://image.istarbucks.co.kr/upload/store/skuimg/2020/09/[9200000001302]_20200921171804529.jpg"]
+, ["우유", "240", "18", "12", "200", "8", "0", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/04/[18]_20210426095514018.jpg"]
+, ["제주 까망 라떼", "445", "49", "13", "250", "7", "0", "https://image.istarbucks.co.kr/upload/store/skuimg/2020/09/[9200000001301]_20200921171639781.jpg"]
+, ["제주팔삭 셔벗", "95", "22", "0", "5", "0", "0", "https://image.istarbucks.co.kr/upload/store/skuimg/2023/10/[9200000004957]_20231005084829402.jpg"]
+, ["필 더 그린 190ML", "90", "15", "1", "15", "0.2", "0", "https://image.istarbucks.co.kr/upload/store/skuimg/2022/09/[9300000004348]_20220921102420365.jpg"]
+, ["필 더 레드 190ML", "90", "16", "1", "45", "0.1", "0", "https://image.istarbucks.co.kr/upload/store/skuimg/2022/09/[9300000004346]_20220921130442019.jpg"]
+, ["필 더 옐로우 190ML", "100", "16", "1", "0", "0.1", "0", "https://image.istarbucks.co.kr/upload/store/skuimg/2022/09/[9300000004347]_20220921130952276.jpg"]
+, ["딸기주스 190ML", "110", "25", "0", "30", "0", "0", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/04/[5210008070]_20210426095034991.jpg"]
+, ["망고주스 190ML", "117", "23", "1", "15", "0", "0", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/04/[5210008061]_20210426095229362.jpg"]
+, ["스타 루비 자몽 스위트 190ML", "129", "32", "0.2", "5", "0", "0", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/10/[9300000003773]_20211020094026246.jpg"]
+, ["유기농 오렌지 100% 주스 190ML", "95", "20", "2", "5", "0", "0", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/10/[9300000003771]_20211020093812909.jpg"]
+, ["유기농 오렌지 100% 주스 591ML", "290", "62", "6", "10", "0.6", "0", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/10/[9300000003772]_20211020095105008.jpg"]
+, ["케일&사과주스 190ML", "105", "26", "0", "25", "0", "0", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/04/[5210008072]_20210426100712780.jpg"]
+, ["핑크 용과 레모네이드 190ML", "88", "19", "0", "5", "0", "0", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/10/[9300000003776]_20211020094321785.jpg"]
+, ["한라봉주스 190ML", "88", "20", "1", "10", "0", "0", "https://image.istarbucks.co.kr/upload/store/skuimg/2023/03/[5210008055]_20230331142558998.jpg"]
+, ["햇사과 주스 190ML", "113", "27", "0.2", "10", "0", "0", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/04/[9300000002565]_20210426102753285.jpg"]
+, ["햇사과 주스 591ML", "360", "84", "1.3", "20", "0", "0", "https://image.istarbucks.co.kr/upload/store/skuimg/2022/10/[9300000004407]_20221027102828231.jpg"]
+, ["딸기 가득 요거트 190ML", "155", "21", "4", "50", "3.2", "0", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/10/[9300000003775]_20211020094208342.jpg"]
+, ["블루베리 요거트 190ML", "155", "18", "5", "70", "3.6", "0", "https://image.istarbucks.co.kr/upload/store/skuimg/2021/04/[5210008063]_20210419104847612.jpg"]
+		];
+		for(let i = 0; i < list.length; i++){
+			list[i].push[i]; // 인덱스
+			list[i].push["b"]; // b:버튼, i:이미지
+		}
+		makeTbl();
+		setSize();
+		window.addEventListener("resize", function() {
+			setSize();
+		});
+	};
+</script>
+</head>
+<body style="min-width:300px">
+	<h3 style="font-size:16px">표의 가장 위의 머리글을 누르시면 오름차순, 내림차순 정렬이 됩니다 ! <a href="https://www.starbucks.co.kr/menu/drink_list.do">→ 스타벅스 음료 홈페이지</a></h3>
+	
+	<div style="display:flex;">
+		<span style="font-size:16px;">필터 :&nbsp;</span><input style="width:100px" id="input1" onchange="setFilter()" maxlength="10"/>
+		<span style="font-size:16px;margin-left:auto;">2024-01-12</span>
+	</div>
+	<table id="tbl" style="margin-top:3px;" width="100%" border="0" cellspacing="0" cellpadding="3"/>
+</body>
+</html>
