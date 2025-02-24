@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>엉뚱한 치환</title>
+    <style>
+button {
+background-color: black;
+color: #8888aa;
+font-size: 1em;
+font-weight: bold;
+border-radius: 0.2em;
+}
+label {
+font-size: 1em;
+font-weight: bold;
+}
+div{
+margin-top:0.5em;
+}
+        textarea {
+            width: 50%;
+            height: 512px;
+        }
+        .container {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+        }
+        .button-container {
+            margin-top: 10px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <textarea id="leftText" placeholder="여기에 입력"></textarea>
+        <textarea id="rightText" placeholder="결과"></textarea>
+    </div>
+    <div class="button-container">
+<div>
+<button onclick="Func00()">왼쪽으로 이동</button>
+<button onclick="Func01()">오른쪽을 복사</button>
+<input type="checkbox" id="auto01" name="auto01" checked>
+<label for="auto01">오른쪽 복사 자동</label>
+</div>
+<div>
+<button onclick="Func02()">문장 뒤 공백 제거</button>
+<button onclick="Func03()">탭을 공백4칸으로</button>
+<button onclick="Func96()">MySQL→postgreSql</button>
+<button onclick="Func97()">`ABC`→abc</button>
+<button onclick="Func98()">""ABC""→abc</button>
+<button onclick="Func99()">"ABC"→abc</button>
+</div>
+    </div>
+
+    <script>
+function Auto01(){
+if(document.getElementById("auto01").checked){
+Func01();
+}
+}
+        function Func00() {
+let leftText = document.getElementById("leftText");
+let rightText = document.getElementById("rightText");
+            let rightTextVal = document.getElementById("rightText").value;
+
+leftText.value = rightTextVal;
+rightText.value ="";
+        }
+        function Func01() {
+let leftText = document.getElementById("leftText");
+            let rightText = document.getElementById("rightText");
+rightText.select();
+document.execCommand('copy');
+leftText.focus();
+        }
+        function Func02() {
+let rightText = document.getElementById("rightText");
+            let leftTextVal = document.getElementById("leftText").value;
+
+leftTextVal = leftTextVal.replace(/[ \t]+$/gm, '');
+
+rightText.value = leftTextVal;
+
+Auto01();
+        }
+        function Func03() {
+let rightText = document.getElementById("rightText");
+            let leftTextVal = document.getElementById("leftText").value;
+
+leftTextVal = leftTextVal.replace(/\t/g, "    ");
+
+rightText.value = leftTextVal;
+
+Auto01();
+        }
+        function Func96() {
+let rightText = document.getElementById("rightText");
+            let leftTextVal = document.getElementById("leftText").value;
+
+let table_name;
+let table_comment;
+
+leftTextVal.replace(/CREATE TABLE `([A-Z_]+)`[ ]*/, (_, match) => {
+table_name = match.toLowerCase();
+return false;
+});
+
+
+table_comment = leftTextVal.match(/(?<=COMMENT=\')(.+)(?=\')/)?.[0]??"";
+
+leftTextVal = leftTextVal.replace(/`([A-Z_]+)`/g, (_, match) => {
+// 특정 단어는 그대로 유지
+if (match === "DTWIN_LNF") return `"${match}"`;
+return match.toLowerCase();
+});
+
+leftTextVal = leftTextVal.replace("CREATE TABLE ", "CREATE TABLE public.")
+.replace("PRIMARY KEY", `CONSTRAINT pk_${table_name} PRIMARY KEY`)
+.replace("UNIQUE KEY", `CONSTRAINT uk_${table_name} UNIQUE`)
+.replace(/(?<=UNIQUE).*(?=\()/, "")
+
+
+let str = "";
+let arr = leftTextVal.split("\n");
+for(let i=0; i < arr.length; i++){
+if(arr[i].includes("COMMENT ")){
+str += `COMMENT ON COLUMN public.${table_name}.${arr[i].split(/[ ]+/)[1]} IS ${arr[i].replace(/.*COMMENT[\s]+/,"").replace(",",";")}\n`;
+}
+
+}
+
+leftTextVal = leftTextVal.replace(/[\s]*COMMENT.*/g, ",");
+
+
+leftTextVal += `
+
+TABLESPACE pg_default;
+
+ALTER TABLE IF EXISTS public.${table_name} OWNER to "DTWIN_LNF";
+
+GRANT ALL ON TABLE public.${table_name} TO "DTWIN_LNF";
+
+COMMENT ON TABLE public.${table_name} IS '${table_comment}';
+`;
+
+leftTextVal += str;
+
+rightText.value = leftTextVal;
+
+Auto01();
+        }
+        function Func97() {
+let rightText = document.getElementById("rightText");
+            let leftTextVal = document.getElementById("leftText").value;
+
+leftTextVal = leftTextVal.replace(/`([A-Z_]+)`/g, (_, match) => {
+// 특정 단어는 그대로 유지
+if (match === "DTWIN_LNF") return `"${match}"`;
+return match.toLowerCase();
+});
+
+rightText.value = leftTextVal;
+
+Auto01();
+        }
+        function Func98() {
+let rightText = document.getElementById("rightText");
+            let leftTextVal = document.getElementById("leftText").value;
+
+leftTextVal = leftTextVal.replace(/""([A-Z_]+)""/g, (_, match) => {
+// 특정 단어는 그대로 유지
+if (match === "DTWIN_LNF") return `"${match}"`;
+return match.toLowerCase();
+});
+
+rightText.value = leftTextVal;
+
+Auto01();
+        }
+        function Func99() {
+let rightText = document.getElementById("rightText");
+            let leftTextVal = document.getElementById("leftText").value;
+
+leftTextVal = leftTextVal.replace(/"([A-Z_]+)"/g, (_, match) => {
+// 특정 단어는 그대로 유지
+if (match === "DTWIN_LNF") return `"${match}"`;
+return match.toLowerCase();
+});
+
+rightText.value = leftTextVal;
+
+Auto01();
+        }
+    </script>
+</body>
+</html>
