@@ -79,6 +79,9 @@
         function calculate() {
             try {
                 let display = document.getElementById("display");
+                if(display.value.search(/\D/) < 0){
+                    return;
+                }
                 let result = eval(display.value);
                 let historyList = document.getElementById("historyList");
                 let listItem = document.createElement("li");
