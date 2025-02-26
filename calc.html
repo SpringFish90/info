@@ -75,7 +75,10 @@
             let display = document.getElementById("display");
             display.value = display.value.slice(0, -1);
         }
-        
+        function numFormat(num){
+			console.log("format:"+num);
+			return num.toLocaleString('ko-KR', { maximumFractionDigits: 9 });
+		}
         function calculate() {
             try {
                 let display = document.getElementById("display");
@@ -85,7 +88,13 @@
                 let result = eval(display.value);
                 let historyList = document.getElementById("historyList");
                 let listItem = document.createElement("li");
-                listItem.textContent = display.value + " = " + result;
+				let numArr = display.value.split(/[^0-9.]+/g).filter(Boolean).map(Number)
+				for(let i = 0 ; i < numArr.length; i++){
+					numArr[i] = numFormat(numArr[i]);
+				}
+				console.log(numArr);
+				console.log(display.value.split(/[0-9.]+/g).filter(Boolean));
+                listItem.textContent = display.value + " = " + numFormat(result);
                 historyList.appendChild(listItem);
                 display.value = result;
             } catch (error) {
