@@ -57,7 +57,7 @@
             <button onclick="Func04()">1내용2</button>
 			<br>
             <button onclick="Func87()">12히스토리만들기</button>
-            <button onclick="Func88()">1QMS→pgDdl</button>
+            <button onclick="Func88()">12QMS→pgDdl</button>
             <button onclick="Func89()">erdCloud→pgDdl</button>
             <button onclick="Func90()">,→\n</button>
             <button onclick="Func91()">INSERT MSSQL→postgreSQL</button>
@@ -189,15 +189,15 @@ BEGIN
 			  const comments = [];
 			  
 			  columns.push(unique + " bigint");
-			  comments.push(`COMMENT ON TABLE "${tableName}" IS '';`);
+			  comments.push(`COMMENT ON TABLE "${tableName}" IS '${ipt_2.value}';`);
 
 			  for (let i = 0; i < lines.length; i++) {
 				const parts = lines[i].split('\t').map(p => p.trim());
 				if (parts.length < 3) continue;
 
-				const columnName = parts[0].toLowerCase(); // 첫 번째 문자열을 소문자로 변환
-				const dataType = convertToPostgresType(parts[1]); // 두 번째 문자열을 PostgreSQL 타입으로 변환
-				const comment = parts[2]; // 세 번째 문자열은 코멘트
+				const columnName = parts[0].toLowerCase();
+				const dataType = convertToPostgresType(parts[1]); // PostgreSQL 타입으로 변환
+				const comment = parts[4] || parts[2];
 
 				columns.push(`${columnName} ${dataType}`);
 				comments.push(`COMMENT ON COLUMN "${tableName}"."${columnName}" IS '${comment}';`);
@@ -208,7 +208,7 @@ BEGIN
 			  columns.push("upd_dm timestamp");
 			  columns.push("inact_yn text");
 			  columns.push(`CONSTRAINT ${tableName}_pkey PRIMARY KEY ()`);
-			  columns.push(`CONSTRAINT ${tableName}_key PRIMARY KEY UNIQUE (${unique})`);
+			  columns.push(`CONSTRAINT ${tableName}_${unique}_key UNIQUE (${unique})`);
 			  
 			  comments.push(`COMMENT ON COLUMN "${tableName}"."reg_id" IS '등록자';`);
 			  comments.push(`COMMENT ON COLUMN "${tableName}"."reg_dm" IS '등록일시';`);
