@@ -47,8 +47,22 @@
             <label for="auto01">오른쪽 복사 자동</label>
         </div>
         <div>
+			<input id="ipt_1" placeholder="1" style="width:166px;">
+			<input id="ipt_2" placeholder="2" style="width:166px;">
+			<input id="ipt_3" placeholder="3" style="width:166px;">
+			<input id="ipt_4" placeholder="4" style="width:166px;">
+			<input id="ipt_5" placeholder="5" style="width:166px;">
             <button onclick="Func02()">문장 뒤 공백 제거</button>
             <button onclick="Func03()">탭을 공백4칸으로</button>
+            <button onclick="Func04()">1내용2</button>
+			<br>
+            <button onclick="Func87()">12히스토리만들기</button>
+            <button onclick="Func88()">1QMS→pgDdl</button>
+            <button onclick="Func89()">erdCloud→pgDdl</button>
+            <button onclick="Func90()">,→\n</button>
+            <button onclick="Func91()">INSERT MSSQL→postgreSQL</button>
+            <button onclick="Func92()">양식생성</button>
+            <button onclick="Func93()">"\n"→\n</button>
             <button onclick="Func94()">abcDef→ABC_DEF</button>
             <button onclick="Func95()">ABC_DEF→abcDef</button>
             <button onclick="Func96()">MySQL→postgreSql</button>
@@ -65,23 +79,18 @@
             }
         }
         function Func00() {
-            let leftText = document.getElementById("leftText");
-            let rightText = document.getElementById("rightText");
-            let rightTextVal = document.getElementById("rightText").value;
+            let rightTextVal = rightText.value;
 
             leftText.value = rightTextVal;
             rightText.value = "";
         }
         function Func01() {
-            let leftText = document.getElementById("leftText");
-            let rightText = document.getElementById("rightText");
             rightText.select();
             document.execCommand('copy');
             leftText.focus();
         }
         function Func02() {
-            let rightText = document.getElementById("rightText");
-            let leftTextVal = document.getElementById("leftText").value;
+            let leftTextVal = leftText.value;
 
             leftTextVal = leftTextVal.replace(/[ \t]+$/gm, '');
 
@@ -90,8 +99,7 @@
             Auto01();
         }
         function Func03() {
-            let rightText = document.getElementById("rightText");
-            let leftTextVal = document.getElementById("leftText").value;
+            let leftTextVal = leftText.value;
 
             leftTextVal = leftTextVal.replace(/\t/g, "    ");
 
@@ -99,10 +107,267 @@
 
             Auto01();
         }
+        function Func04() {
+            let leftTextVal = leftText.value;
+
+            leftTextVal = leftTextVal.replace(/^(.+)$/gm, ipt_1.value + '$1' + ipt_2.value);
+
+            rightText.value = leftTextVal;
+
+            Auto01();
+        }
+        function Func87() {
+			let html = `CREATE TABLE IF NOT EXISTS public.${ipt_1.value}_history
+(
+    his_uuid bigint NOT NULL,
+    his_dm timestamp without time zone NOT NULL,
+    his_state text NOT NULL,
+	
+    CONSTRAINT ${ipt_1.value}_history_pkey PRIMARY KEY (his_dm, his_uuid)
+);
+COMMENT ON TABLE public.${ipt_1.value}_history
+    IS '${ipt_2.value} 변경내역';
+COMMENT ON COLUMN public.${ipt_1.value}_history.his_uuid
+    IS '변경내역UUID';
+
+COMMENT ON COLUMN public.${ipt_1.value}_history.his_dm
+    IS '변경일시';
+
+COMMENT ON COLUMN public.${ipt_1.value}_history.his_state
+    IS '변경상태(CUD)';
+
+CREATE OR REPLACE FUNCTION public.${ipt_1.value}_history(
+	p_his_state text,
+
+	p_inact_yn text)
+
+DECLARE
+    v_his_uuid bigint;
+BEGIN
+    v_his_uuid := ccode();
+
+    INSERT INTO ${ipt_1.value}_history(
+        his_uuid
+		, his_dm
+		, his_state
+		
+        , inact_yn
+    )
+    VALUES (
+        v_his_uuid
+		, NOW()
+        , p_his_state
+		
+        , p_inact_yn
+	);
+    RETURN QUERY
+    SELECT v_his_uuid;
+`;
+
+            rightText.value = html;
+
+            Auto01();
+        }
+        function Func88() {
+			/**
+			 * 주어진 문자열을 파싱하여 PostgreSQL CREATE TABLE 문과 COMMENT 문을 생성합니다.
+			 * @param {string} input - 파싱할 문자열.
+			 * @returns {object} - { createTableQuery, commentQueries } 객체.
+			 */
+			function generateCreateTableAndComments(input) {
+			  const lines = input.trim().split('\n');
+			  if (lines.length < 1) {
+				return { createTableQuery: '', commentQueries: [] };
+			  }
+
+			  // 첫 번째 줄을 테이블 이름으로 변환 (스네이크 케이스)
+			  const tableName = ipt_1.value.replace(/([a-z0-9])([A-Z])/g, '$1_$2').toLowerCase();
+			  const unique = tableName.replace(/(^|_)([a-z])[a-z]*/g, "$2")+"_id";
+			  
+			  // 컬럼 정보와 코멘트 정보 파싱
+			  const columns = [];
+			  const comments = [];
+			  
+			  columns.push(unique + " bigint");
+			  comments.push(`COMMENT ON TABLE "${tableName}" IS '';`);
+
+			  for (let i = 0; i < lines.length; i++) {
+				const parts = lines[i].split('\t').map(p => p.trim());
+				if (parts.length < 3) continue;
+
+				const columnName = parts[0].toLowerCase(); // 첫 번째 문자열을 소문자로 변환
+				const dataType = convertToPostgresType(parts[1]); // 두 번째 문자열을 PostgreSQL 타입으로 변환
+				const comment = parts[2]; // 세 번째 문자열은 코멘트
+
+				columns.push(`${columnName} ${dataType}`);
+				comments.push(`COMMENT ON COLUMN "${tableName}"."${columnName}" IS '${comment}';`);
+			  }
+			  columns.push("reg_id text");
+			  columns.push("reg_dm timestamp");
+			  columns.push("upd_id text");
+			  columns.push("upd_dm timestamp");
+			  columns.push("inact_yn text");
+			  columns.push(`CONSTRAINT ${tableName}_pkey PRIMARY KEY ()`);
+			  columns.push(`CONSTRAINT ${tableName}_key PRIMARY KEY UNIQUE (${unique})`);
+			  
+			  comments.push(`COMMENT ON COLUMN "${tableName}"."reg_id" IS '등록자';`);
+			  comments.push(`COMMENT ON COLUMN "${tableName}"."reg_dm" IS '등록일시';`);
+			  comments.push(`COMMENT ON COLUMN "${tableName}"."upd_id" IS '수정자';`);
+			  comments.push(`COMMENT ON COLUMN "${tableName}"."upd_dm" IS '수정일시';`);
+			  comments.push(`COMMENT ON COLUMN "${tableName}"."inact_yn" IS '데이터제외구분';`);
+
+			  // CREATE TABLE 문 생성
+			  const createTableQuery = `CREATE TABLE IF NOT EXISTS "${tableName}" (\n  ${columns.join(',\n  ')}\n);`;
+
+			  // 주석 쿼리 문장 생성
+			  const commentQueries = comments;
+
+			  return { createTableQuery, commentQueries };
+			}
+
+			/**
+			 * .NET 타입을 PostgreSQL 타입으로 변환합니다.
+			 * @param {string} dotNetType - .NET 데이터 타입 문자열.
+			 * @returns {string} - PostgreSQL 데이터 타입 문자열.
+			 */
+			function convertToPostgresType(dotNetType) {
+			  switch (dotNetType) {
+				case 'String':
+					return 'text';
+				case 'Int32':
+					return 'integer';
+				case 'Int64':
+					return 'bigint';
+				case 'Single':
+					return 'real';
+				case 'Double':
+					return 'double precision';
+				case 'Decimal':
+					return 'numeric';
+				case 'Boolean':
+					return 'boolean';
+				case 'DateTime':
+				case 'DateTimeOffset':
+					return 'timestamp with time zone';
+				case 'DateOnly':
+					return 'date';
+				case 'TimeOnly':
+					return 'time';
+				case 'Guid':
+					return 'uuid';
+				case 'List`1':
+					// C# List<T>는 PostgreSQL ARRAY 타입으로 매핑
+					return 'text[]'; // 예시로 text[]를 사용, 실제로는 T에 따라 달라질 수 있음
+				case 'Dictionary`2':
+					// Dictionary<TKey, TValue>는 PostgreSQL JSONB로 매핑
+					return 'jsonb';
+				default:
+					return dotNetType; // 정의되지 않은 타입
+			  }
+			}
+			
+            let leftTextVal = leftText.value;
+			
+			// 함수 실행
+			const result = generateCreateTableAndComments(leftTextVal);
+
+            rightText.value = result.createTableQuery + "\n";
+			rightText.value += result.commentQueries.join('\n');
+
+            Auto01();
+        }
+        function Func89() {
+            let leftTextVal = leftText.value;
+
+            let textList = leftTextVal.split('\n');
+			let str = "";
+			let str2 = "";
+			let strSplit = [];
+			let ele = "";
+			let table_name = textList[0].split(/\t/g)[0]
+			for(let i=2; i < textList.length; i++){
+				ele = textList[i];
+				strSplit = ele.split(/\t/g);
+				str += strSplit[2] + " " + strSplit[4] + (strSplit[5] == "N"?" NOT NULL":"") + ",\n";
+				str2 += "COMMENT ON COLUMN " + table_name + "." + strSplit[2] + " IS '" + strSplit[strSplit.length-1] + "';\n";
+			}
+
+            rightText.value = str.replaceAll("wotz", "without time zone");
+			rightText.value += str2;
+
+            Auto01();
+        }
+        function Func90() {
+            let leftTextVal = leftText.value;
+
+            leftTextVal = leftTextVal.replace(/,/g, "\n        ,");
+			leftTextVal = leftTextVal.replace(/,[\s]+/g, ", ");
+
+            rightText.value = leftTextVal;
+
+            Auto01();
+        }
+        function Func91() {
+            let leftTextVal = leftText.value;
+
+			leftTextVal = leftTextVal.replace(/INSERT INTO/g, "INSERT INTO mi_");
+            leftTextVal = leftTextVal.replace(/\(N'/g, "('");
+            leftTextVal = leftTextVal.replace(/, N'/g, ", '");
+            leftTextVal = leftTextVal.replace(/\) VALUES/g, ", inact_yn) VALUES");
+            leftTextVal = leftTextVal.replace(/\);/g, ", 'N'\);");
+
+            rightText.value = leftTextVal;
+
+            Auto01();
+        }
+        function Func92() {
+            function pad(num) {
+                return num.toString().padStart(2, "0");
+            }
+			function yyyyMMdd(date){
+				return date.getFullYear()+"-"+pad(date.getMonth() + 1)+"-"+pad(date.getDate());
+			}
+			function yyyyMMdd2(date){
+				const map = {
+				  1: '월',
+				  2: '화',
+				  3: '수',
+				  4: '목',
+				  5: '금',
+				  6: '토',
+				  7: '일'
+				};
+				return date.getFullYear()+"."+pad(date.getMonth() + 1)+"."+pad(date.getDate())
+				    + " " + map[date.getDay()] + "요일"
+			}
+			let date = new Date();
+            rightText.value = "황진범 " + yyyyMMdd(date) + " 일일 업무보고서\n";
+			rightText.value += yyyyMMdd2(date) + "\n";
+			rightText.value += "[완료]\n★LNF ABB\n★남서울대\n[진행중]\n★\n";
+			
+			let date2 = new Date();
+			date2.setDate(date2.getDate() - 4);
+			let start = date2.getDate();
+			let end = date.getDate();
+			rightText.value += "황진범 " + date.getFullYear() + "/" + pad(date.getMonth() + 1) + " " + start + "~" + end + "일 주간업무보고\n";
+			
+			rightText.value += "황진범 " + yyyyMMdd(date) + " 휴가신청서(오후반차)\n";
+			rightText.value += "황진범 " + yyyyMMdd(date) + " 지출결의서\n";
+            Auto01();
+        }
+        function Func93() {
+            let leftTextVal = leftText.value;
+
+            leftTextVal = leftTextVal.replace(/\\n/g, "\n");
+
+            rightText.value = leftTextVal;
+
+            Auto01();
+        }
         function Func94() {
-            let rightText = document.getElementById("rightText");
-            let leftTextValArr = document.getElementById("leftText").value.split(/\s/g);
-            let leftTextSpaceArr = document.getElementById("leftText").value.match(/\s/g);
+            let leftTextVal = leftText.value;
+            let leftTextValArr = leftTextVal.split(/\s/g);
+            let leftTextSpaceArr = leftTextVal.match(/\s/g);
             let result = "";
 
             for (let i = 0; i < leftTextValArr.length; i++) {
@@ -117,9 +382,9 @@
             Auto01();
         }
         function Func95() {
-            let rightText = document.getElementById("rightText");
-            let leftTextValArr = document.getElementById("leftText").value.split(/\s/g);
-            let leftTextSpaceArr = document.getElementById("leftText").value.match(/\s/g);
+            let leftTextVal = leftText.value;
+            let leftTextValArr = leftTextVal.split(/\s/g);
+            let leftTextSpaceArr = leftTextVal.match(/\s/g);
             let result = "";
 
             for (let i = 0; i < leftTextValArr.length; i++) {
@@ -134,8 +399,7 @@
             Auto01();
         }
         function Func96() {
-            let rightText = document.getElementById("rightText");
-            let leftTextVal = document.getElementById("leftText").value;
+            let leftTextVal = leftText.value;
 
             let table_name;
             let table_comment;
@@ -186,8 +450,7 @@ COMMENT ON TABLE public.${table_name} IS '${table_comment}';
             Auto01();
         }
         function Func97() {
-            let rightText = document.getElementById("rightText");
-            let leftTextVal = document.getElementById("leftText").value;
+            let leftTextVal = leftText.value;
 
             leftTextVal = leftTextVal.replace(/`([A-Z_0-9]+)`/g, (_, match) => {
                 // 특정 단어는 그대로 유지
@@ -200,8 +463,7 @@ COMMENT ON TABLE public.${table_name} IS '${table_comment}';
             Auto01();
         }
         function Func98() {
-            let rightText = document.getElementById("rightText");
-            let leftTextVal = document.getElementById("leftText").value;
+            let leftTextVal = leftText.value;
 
             leftTextVal = leftTextVal.replace(/""([A-Z_0-9]+)""/g, (_, match) => {
                 // 특정 단어는 그대로 유지
@@ -214,8 +476,7 @@ COMMENT ON TABLE public.${table_name} IS '${table_comment}';
             Auto01();
         }
         function Func99() {
-            let rightText = document.getElementById("rightText");
-            let leftTextVal = document.getElementById("leftText").value;
+            let leftTextVal = leftText.value;
 
             leftTextVal = leftTextVal.replace(/"([A-Z_0-9]+)"/g, (_, match) => {
                 // 특정 단어는 그대로 유지
