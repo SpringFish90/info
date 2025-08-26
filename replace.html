@@ -47,28 +47,21 @@
             <label for="auto01">오른쪽 복사 자동</label>
         </div>
         <div>
-			<input id="ipt_1" placeholder="1" style="width:166px;">
-			<input id="ipt_2" placeholder="2" style="width:166px;">
-			<input id="ipt_3" placeholder="3" style="width:166px;">
-			<input id="ipt_4" placeholder="4" style="width:166px;">
-			<input id="ipt_5" placeholder="5" style="width:166px;">
+            <input id="ipt_1" placeholder="1" style="width:166px;">
+            <input id="ipt_2" placeholder="2" style="width:166px;">
+            <input id="ipt_3" placeholder="3" style="width:166px;">
+            <input id="ipt_4" placeholder="4" style="width:166px;">
+            <input id="ipt_5" placeholder="5" style="width:166px;">
             <button onclick="Func02()">문장 뒤 공백 제거</button>
             <button onclick="Func03()">탭을 공백4칸으로</button>
             <button onclick="Func04()">1내용2</button>
-			<br>
-            <button onclick="Func87()">12히스토리만들기</button>
-            <button onclick="Func88()">12QMS→pgDdl</button>
-            <button onclick="Func89()">erdCloud→pgDdl</button>
-            <button onclick="Func90()">,→\n</button>
-            <button onclick="Func91()">INSERT MSSQL→postgreSQL</button>
-            <button onclick="Func92()">양식생성</button>
-            <button onclick="Func93()">"\n"→\n</button>
-            <button onclick="Func94()">abcDef→ABC_DEF</button>
-            <button onclick="Func95()">ABC_DEF→abcDef</button>
-            <button onclick="Func96()">MySQL→postgreSql</button>
-            <button onclick="Func97()">`ABC`→abc</button>
-            <button onclick="Func98()">""ABC""→abc</button>
-            <button onclick="Func99()">"ABC"→abc</button>
+            <button onclick="Func08()">1양식</button>
+            <br>
+            <button onclick="Func10()">pgTb→TbHis</button>
+            <button onclick="Func11()">pgTb→fn_Tb</button>
+            <button onclick="Func12()">pgTb→fn_TbHis</button>
+            <br>
+            <button onclick="Func20()">123QMS→pgTb</button>
         </div>
     </div>
 
@@ -116,375 +109,428 @@
 
             Auto01();
         }
-        function Func87() {
-			let html = `CREATE TABLE IF NOT EXISTS public.${ipt_1.value}_history
-(
-    his_uuid bigint NOT NULL,
+        function Func08() {
+            function pad(num) {
+                return num.toString().padStart(2, "0");
+            }
+            function yyyyMMdd(date){
+                return date.getFullYear()+"-"+pad(date.getMonth() + 1)+"-"+pad(date.getDate());
+            }
+            function yyyyMMdd2(date){
+                const map = {
+                  1: '월',
+                  2: '화',
+                  3: '수',
+                  4: '목',
+                  5: '금',
+                  6: '토',
+                  7: '일'
+                };
+                return date.getFullYear()+"."+pad(date.getMonth() + 1)+"."+pad(date.getDate())
+                    + " " + map[date.getDay()] + "요일"
+            }
+            let date = new Date();
+            rightText.value = ipt_1.value + " " + yyyyMMdd(date) + " 일일 업무보고서\n";
+            rightText.value += yyyyMMdd2(date) + "\n";
+            
+            let date2 = new Date();
+            date2.setDate(date2.getDate() - 4);
+            let start = date2.getDate();
+            let end = date.getDate();
+            rightText.value += ipt_1.value + " " + date.getFullYear() + "/" + pad(date.getMonth() + 1) + " " + start + "~" + end + "일 주간업무보고\n";
+            
+            rightText.value += ipt_1.value + " " + yyyyMMdd(date) + " 휴가신청서(오후반차)\n";
+            rightText.value += ipt_1.value + " " + yyyyMMdd(date) + " 지출결의서\n";
+            Auto01();
+        }
+        function Func10() {
+			  let ddl = leftText.value;
+
+  // 1. 원본 테이블명 추출
+  const tableNameMatch = ddl.match(/CREATE TABLE IF NOT EXISTS\s+([^\s(]+)/i);
+  if (!tableNameMatch) throw new Error("테이블명을 찾을 수 없음");
+
+  const fullTableName = tableNameMatch[1]; // 예: public.ci_asst100
+  const schema = fullTableName.includes(".") ? fullTableName.split(".")[0] : "public";
+  const baseName = fullTableName.includes(".") ? fullTableName.split(".")[1] : fullTableName;
+
+  const historyTableName = `${schema}.${baseName}_history`;
+
+  // 2. 모든 baseName → baseName_history 치환 (테이블명, 제약조건 등)
+  ddl = ddl.replace(new RegExp(baseName, "g"), `${baseName}_history`);
+
+  // 3. CREATE TABLE 내부 컬럼 추출
+  const createTableMatch = ddl.match(/CREATE TABLE IF NOT EXISTS [\s\S]*?\(([\s\S]*?)\)\s*TABLESPACE/);
+  if (!createTableMatch) throw new Error("CREATE TABLE 구문을 찾을 수 없음");
+
+  let columns = createTableMatch[1].trim();
+
+  // 4. 기존 PK/Unique/Constraint 제거 (줄 단위)
+  columns = columns
+    .split("\n")
+    .filter(line => !/CONSTRAINT/i.test(line.trim()))
+    .join("\n");
+
+  // 5. 히스토리 전용 컬럼 추가 (맨 앞)
+  const historyCols = `    his_uuid bigint NOT NULL,
     his_dm timestamp without time zone NOT NULL,
-    his_state text NOT NULL,
-	
-    CONSTRAINT ${ipt_1.value}_history_pkey PRIMARY KEY (his_dm, his_uuid)
-);
-COMMENT ON TABLE public.${ipt_1.value}_history
-    IS '${ipt_2.value} 변경내역';
-COMMENT ON COLUMN public.${ipt_1.value}_history.his_uuid
-    IS '변경내역UUID';
+    his_state text COLLATE pg_catalog."default" NOT NULL,`;
+  columns = historyCols + "\n    " + columns;
 
-COMMENT ON COLUMN public.${ipt_1.value}_history.his_dm
-    IS '변경일시';
+  // 6. CREATE TABLE 정의문 다시 작성
+  ddl = ddl.replace(
+    /CREATE TABLE IF NOT EXISTS [\s\S]*?\([\s\S]*?\)\s*TABLESPACE/,
+    `CREATE TABLE IF NOT EXISTS ${historyTableName}\n(\n${columns}\n    CONSTRAINT ${baseName}_history_pkey PRIMARY KEY (his_dm, his_uuid)\n)\n\nTABLESPACE`
+  );
 
-COMMENT ON COLUMN public.${ipt_1.value}_history.his_state
-    IS '변경상태(CUD)';
+  // 7. COMMENT ON COLUMN: 새 컬럼 추가
+  ddl += `
+COMMENT ON COLUMN ${historyTableName}.his_uuid IS '변경내역UUID';
+COMMENT ON COLUMN ${historyTableName}.his_dm IS '변경일시';
+COMMENT ON COLUMN ${historyTableName}.his_state IS '변경상태';
+`;
 
-CREATE OR REPLACE FUNCTION public.${ipt_1.value}_history(
-	p_his_state text,
+  // 8. COMMENT ON TABLE: _history + ' 변경내역'
+  ddl = ddl.replace(
+    /COMMENT ON TABLE\s+([^\s]+)\s+IS\s+'([^']+)';/gi,
+    (match, tableName, comment) => {
+      const historyTable = tableName + "_history";
+      return `COMMENT ON TABLE ${historyTable} IS '${comment} 변경내역';`;
+    }
+  );
 
-	p_inact_yn text)
+            rightText.value = ddl;
 
+            Auto01();
+        }
+        function Func11() {
+let ddl = leftText.value;
+
+// 테이블명 추출
+const tableNameMatch = ddl.match(/CREATE TABLE IF NOT EXISTS\s+([^\s(]+)/i);
+if (!tableNameMatch) throw new Error("테이블명을 찾을 수 없습니다.");
+const fullTableName = tableNameMatch[1];
+const baseName = fullTableName.includes(".") ? fullTableName.split(".")[1] : fullTableName;
+
+// 컬럼 추출
+const columnsMatch = ddl.match(/CREATE TABLE [\s\S]*?\(([\s\S]*?)\)/i);
+if (!columnsMatch) throw new Error("컬럼을 찾을 수 없습니다.");
+
+let columns = columnsMatch[1]
+  .split("\n")
+  .map(line => line.trim())
+  .filter(line => line && !line.toUpperCase().startsWith("CONSTRAINT"))
+  .map(line => line.replace(/,$/, ''))
+  .map(line => line.split(/\s+/)[0]);
+
+// PK/Unique 컬럼 추출
+const pkMatch = ddl.match(/PRIMARY KEY\s*\(([^)]+)\)/i);
+const pkCols = pkMatch ? pkMatch[1].split(",").map(c => c.trim()) : [];
+
+const uniqueMatches = [...ddl.matchAll(/UNIQUE\s*\(([^)]+)\)/gi)];
+const uniqueCols = uniqueMatches.flatMap(m => m[1].split(",").map(c => c.trim()));
+
+const pkUniqueCols = [...new Set([...pkCols, ...uniqueCols])];
+
+// INSERT 컬럼 (upd_dm, upd_id 제외, reg_dm/NOW() 처리)
+const insertCols = columns.filter(c => !["upd_id","upd_dm"].includes(c));
+const insertValues = insertCols.map(c => {
+  if (c === "reg_dm" || c === "upd_dm") return "NOW()";
+  return `p_${c}`;
+}).join(",\n        ");
+
+// UPDATE 컬럼 (reg_dm, reg_id 제외, upd_dm/NOW() 처리)
+const updateCols = columns.filter(c => !["reg_id","reg_dm"].includes(c));
+const updateSet = updateCols.map(c => {
+  if (c === "upd_dm") return `${c} = NOW()`;
+  return `${c} = p_${c}`;
+}).join(",\n        ");
+
+// DISTINCT WHERE 절 (PK/Unique + reg/upd 컬럼 제외)
+const distinctCols = columns.filter(c => !pkUniqueCols.includes(c) && !["reg_id","reg_dm","upd_id","upd_dm"].includes(c));
+const distinctWhere = distinctCols.map(c => `${fullTableName}.${c} IS DISTINCT FROM p_${c}`).join("\n       OR ");
+
+// p_ 컬럼 정의 (COLLATE 제거, 타입/제약 그대로 유지)
+const pColsDef = columnsMatch[1]
+  .split("\n")
+  .map(line => line.trim())
+  .filter(line => line && !line.toUpperCase().startsWith("CONSTRAINT"))
+  .map(line => line.replace(/,$/, ''))
+  .map(line => {
+    let parts = line.replace(/COLLATE pg_catalog\."default"/gi, '').trim();
+    let colName = parts.split(/\s+/)[0];
+    let colType = parts.slice(colName.length).trim();
+    return `p_${colName} ${colType}`;
+  })
+  .join(",\n    ");
+
+// PERFORM 히스토리용 컬럼 줄바꿈 (p_reg_dm → NOW(), p_upd_dm → NULL)
+const performCols = columns.map(c => {
+  if (c === "reg_dm") return "NOW()";
+  if (c === "upd_dm") return "NULL";
+  return `p_${c}`;
+}).join(",\n        ");
+
+// 함수 문자열 생성
+rightText.value = `
+CREATE OR REPLACE FUNCTION public.fn_${baseName}(
+    ${pColsDef},
+    p_act_type text
+)
+RETURNS TABLE(r_${columns[0]} bigint)
+LANGUAGE plpgsql
+AS $BODY$
+DECLARE
+    v_state text;
+    v_action int;
+BEGIN
+    IF p_${columns[0]} IS NULL THEN
+        p_${columns[0]} := seq(); -- 시퀀스 생성
+    END IF;
+
+    v_state := UPPER(p_act_type);
+    IF v_state = 'D' THEN
+        p_inact_yn := 'Y';
+    ELSE
+        p_inact_yn := 'N';
+    END IF;
+
+    INSERT INTO ${fullTableName}(
+        ${insertCols.join(",\n        ")}
+    )
+    VALUES (
+        ${insertValues}
+    )
+    ON CONFLICT ON CONSTRAINT ${baseName}_pkey
+    DO UPDATE SET
+        ${updateSet}
+    WHERE ${distinctWhere}
+    RETURNING xmax INTO v_action;
+
+    -- 히스토리 호출
+    PERFORM fn_${baseName}_history(
+        v_state,
+        ${performCols}
+    );
+
+    RETURN QUERY
+    SELECT p_${columns[0]};
+
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE EXCEPTION 'Error: %', SQLERRM;
+END;
+$BODY$;
+`;
+
+            Auto01();
+        }
+        function Func12() {
+let ddl = leftText.value; // ci_asst100 DDL
+
+// 테이블명 추출
+const tableNameMatch = ddl.match(/CREATE TABLE IF NOT EXISTS\s+([^\s(]+)/i);
+if (!tableNameMatch) throw new Error("테이블명을 찾을 수 없습니다.");
+const fullTableName = tableNameMatch[1];
+const baseName = fullTableName.includes(".") ? tableNameMatch[1].split(".")[1] : tableNameMatch[1];
+const historyTable = `${baseName}_history`;
+
+// 컬럼 추출
+const columnsMatch = ddl.match(/CREATE TABLE [\s\S]*?\(([\s\S]*?)\)/i);
+if (!columnsMatch) throw new Error("컬럼을 찾을 수 없습니다.");
+
+let columns = columnsMatch[1]
+  .split("\n")
+  .map(line => line.trim())
+  .filter(line => line && !line.toUpperCase().startsWith("CONSTRAINT"))
+  .map(line => line.replace(/,$/, ''))
+  .map(line => line.split(/\s+/)[0]);
+
+// p_ 컬럼 정의 (COLLATE 제거)
+const pColsDef = columnsMatch[1]
+  .split("\n")
+  .map(line => line.trim())
+  .filter(line => line && !line.toUpperCase().startsWith("CONSTRAINT"))
+  .map(line => line.replace(/,$/, ''))
+  .map(line => {
+    let parts = line.replace(/COLLATE pg_catalog\."default"/gi, '').trim();
+    let colName = parts.split(/\s+/)[0];
+    let colType = parts.slice(colName.length).trim();
+    return `p_${colName} ${colType}`;
+  })
+  .join(",\n    ");
+
+// INSERT 컬럼, VALUES (upd_id, upd_dm 제외, reg_dm → NOW())
+const insertCols = ["his_uuid", "his_dm", "his_state", ...columns.filter(c => !["upd_id","upd_dm"].includes(c))];
+const insertValues = ["v_his_uuid", "NOW()", "p_his_state", ...columns.filter(c => !["upd_id","upd_dm"].includes(c)).map(c => c === "reg_dm" ? "NOW()" : `p_${c}`)].join(",\n        ");
+
+// 함수 생성
+rightText.value = `
+CREATE OR REPLACE FUNCTION public.fn_${baseName}_history(
+    p_his_state text,
+    ${pColsDef}
+)
+RETURNS TABLE(r_his_uuid bigint) 
+LANGUAGE 'plpgsql'
+AS $BODY$
 DECLARE
     v_his_uuid bigint;
 BEGIN
     v_his_uuid := ccode();
 
-    INSERT INTO ${ipt_1.value}_history(
-        his_uuid
-		, his_dm
-		, his_state
-		
-        , inact_yn
+    INSERT INTO ${historyTable}(
+        ${insertCols.join(",\n        ")}
     )
     VALUES (
-        v_his_uuid
-		, NOW()
-        , p_his_state
-		
-        , p_inact_yn
-	);
+        ${insertValues}
+    );
+
     RETURN QUERY
     SELECT v_his_uuid;
+
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE EXCEPTION 'Error: %', SQLERRM;
+END;
+$BODY$;
 `;
-
-            rightText.value = html;
-
             Auto01();
-        }
-        function Func88() {
-			/**
-			 * 주어진 문자열을 파싱하여 PostgreSQL CREATE TABLE 문과 COMMENT 문을 생성합니다.
-			 * @param {string} input - 파싱할 문자열.
-			 * @returns {object} - { createTableQuery, commentQueries } 객체.
-			 */
-			function generateCreateTableAndComments(input) {
-			  const lines = input.trim().split('\n');
-			  if (lines.length < 1) {
-				return { createTableQuery: '', commentQueries: [] };
-			  }
+		}
+        function Func20() {
+            /**
+             * 주어진 문자열을 파싱하여 PostgreSQL CREATE TABLE 문과 COMMENT 문을 생성합니다.
+             * @param {string} input - 파싱할 문자열.
+             * @returns {object} - { createTableQuery, commentQueries } 객체.
+             */
+            function generateCreateTableAndComments(input) {
+              const lines = input.trim().split('\n');
+              if (lines.length < 1) {
+                return { createTableQuery: '', commentQueries: [] };
+              }
 
-			  // 첫 번째 줄을 테이블 이름으로 변환 (스네이크 케이스)
-			  const tableName = ipt_1.value.replace(/([a-z0-9])([A-Z])/g, '$1_$2').toLowerCase();
-			  const unique = tableName.replace(/(^|_)([a-z])[a-z]*/g, "$2")+"_id";
-			  
-			  // 컬럼 정보와 코멘트 정보 파싱
-			  const columns = [];
-			  const comments = [];
-			  
-			  columns.push(unique + " bigint");
-			  comments.push(`COMMENT ON TABLE "${tableName}" IS '${ipt_2.value}';`);
+              // 첫 번째 줄을 테이블 이름으로 변환 (스네이크 케이스)
+              const tableName = ipt_1.value.replace(/([a-z0-9])([A-Z])/g, '$1_$2').toLowerCase();
+              const unique = tableName.replace(/(^|_)([a-z])[a-z]*/g, "$2")+"_id";
+              
+              // 컬럼 정보와 코멘트 정보 파싱
+              const columns = [];
+              const comments = [];
+              const columnsHis = [];
+              const commentsHis = [];
+              
+              columns.push(unique + " bigint");
+              columnsHis.push("his_uuid bigint NOT NULL");
+              columnsHis.push("his_dm timestamp without time zone NOT NULL");
+              columnsHis.push("his_state text NOT NULL");
+              columnsHis.push(unique + " bigint");
+              
+              comments.push(`COMMENT ON TABLE ${tableName} IS '${ipt_2.value}';`);
+              commentsHis.push(`COMMENT ON TABLE ${ipt_1.value}_history IS '${ipt_2.value} 변경내역';`);
+              commentsHis.push(`COMMENT ON COLUMN ${ipt_1.value}_history.his_uuid IS '변경내역UUID';`);
+              commentsHis.push(`COMMENT ON COLUMN ${ipt_1.value}_history.his_dm IS '변경일시';`);
+              commentsHis.push(`COMMENT ON COLUMN ${ipt_1.value}_history.his_state IS '변경상태(CUD)';`);
 
-			  for (let i = 0; i < lines.length; i++) {
-				const parts = lines[i].split('\t').map(p => p.trim());
-				if (parts.length < 3) continue;
+              for (let i = 0; i < lines.length; i++) {
+                const parts = lines[i].split('\t').map(p => p.trim());
+                if (parts.length < 3) continue;
 
-				const columnName = parts[0].toLowerCase();
-				const dataType = convertToPostgresType(parts[1]); // PostgreSQL 타입으로 변환
-				const comment = parts[4] || parts[2];
+                const columnName = parts[0].toLowerCase();
+                const dataType = convertToPostgresType(parts[1]); // PostgreSQL 타입으로 변환
+                const comment = parts[4] || parts[2];
 
-				columns.push(`${columnName} ${dataType}`);
-				comments.push(`COMMENT ON COLUMN "${tableName}"."${columnName}" IS '${comment}';`);
-			  }
-			  columns.push("reg_id text");
-			  columns.push("reg_dm timestamp");
-			  columns.push("upd_id text");
-			  columns.push("upd_dm timestamp");
-			  columns.push("inact_yn text");
-			  columns.push(`CONSTRAINT ${tableName}_pkey PRIMARY KEY ()`);
-			  columns.push(`CONSTRAINT ${tableName}_${unique}_key UNIQUE (${unique})`);
-			  
-			  comments.push(`COMMENT ON COLUMN "${tableName}"."reg_id" IS '등록자';`);
-			  comments.push(`COMMENT ON COLUMN "${tableName}"."reg_dm" IS '등록일시';`);
-			  comments.push(`COMMENT ON COLUMN "${tableName}"."upd_id" IS '수정자';`);
-			  comments.push(`COMMENT ON COLUMN "${tableName}"."upd_dm" IS '수정일시';`);
-			  comments.push(`COMMENT ON COLUMN "${tableName}"."inact_yn" IS '데이터제외구분';`);
+                columns.push(`${columnName} ${dataType}`);
+                columnsHis.push(`${columnName} ${dataType}`);
+                
+                comments.push(`COMMENT ON COLUMN ${tableName}.${columnName} IS '${comment}';`);
+                commentsHis.push(`COMMENT ON COLUMN ${tableName}_history.${columnName} IS '${comment}';`);
+              }
 
-			  // CREATE TABLE 문 생성
-			  const createTableQuery = `CREATE TABLE IF NOT EXISTS "${tableName}" (\n  ${columns.join(',\n  ')}\n);`;
+              columns.push("reg_id text");
+              columns.push("reg_dm timestamp");
+              columns.push("upd_id text");
+              columns.push("upd_dm timestamp");
+              columns.push("inact_yn text");
+              columns.push(`CONSTRAINT ${tableName}_pkey PRIMARY KEY (${ipt_3.value})`);
+              columns.push(`CONSTRAINT ${tableName}_${unique}_key UNIQUE (${unique})`);
+              columnsHis.push("reg_id text");
+              columnsHis.push("reg_dm timestamp");
+              columnsHis.push("upd_id text");
+              columnsHis.push("upd_dm timestamp");
+              columnsHis.push("inact_yn text");
+              columnsHis.push(`CONSTRAINT ${ipt_1.value}_history_pkey PRIMARY KEY (his_dm, his_uuid)`);
+              
+              comments.push(`COMMENT ON COLUMN ${tableName}.reg_id IS '등록자';`);
+              comments.push(`COMMENT ON COLUMN ${tableName}.reg_dm IS '등록일시';`);
+              comments.push(`COMMENT ON COLUMN ${tableName}.upd_id IS '수정자';`);
+              comments.push(`COMMENT ON COLUMN ${tableName}.upd_dm IS '수정일시';`);
+              comments.push(`COMMENT ON COLUMN ${tableName}.inact_yn IS '데이터제외구분';`);
+              commentsHis.push(`COMMENT ON COLUMN ${tableName}_history.reg_id IS '등록자';`);
+              commentsHis.push(`COMMENT ON COLUMN ${tableName}_history.reg_dm IS '등록일시';`);
+              commentsHis.push(`COMMENT ON COLUMN ${tableName}_history.upd_id IS '수정자';`);
+              commentsHis.push(`COMMENT ON COLUMN ${tableName}_history.upd_dm IS '수정일시';`);
+              commentsHis.push(`COMMENT ON COLUMN ${tableName}_history.inact_yn IS '데이터제외구분';`);
 
-			  // 주석 쿼리 문장 생성
-			  const commentQueries = comments;
+              // CREATE TABLE 문 생성
+              const createTableQuery = `CREATE TABLE IF NOT EXISTS ${tableName} (\n  ${columns.join(',\n  ')}\n);`;
+              const createTableHisQuery = `CREATE TABLE IF NOT EXISTS ${tableName}_history (\n  ${columnsHis.join(',\n  ')}\n);`;
 
-			  return { createTableQuery, commentQueries };
-			}
+              // 주석 쿼리 문장 생성
+              const commentQuery = comments.join('\n');
+              const commentHisQuery = commentsHis.join('\n');
 
-			/**
-			 * .NET 타입을 PostgreSQL 타입으로 변환합니다.
-			 * @param {string} dotNetType - .NET 데이터 타입 문자열.
-			 * @returns {string} - PostgreSQL 데이터 타입 문자열.
-			 */
-			function convertToPostgresType(dotNetType) {
-			  switch (dotNetType) {
-				case 'String':
-					return 'text';
-				case 'Int32':
-					return 'integer';
-				case 'Int64':
-					return 'bigint';
-				case 'Single':
-					return 'real';
-				case 'Double':
-					return 'double precision';
-				case 'Decimal':
-					return 'numeric';
-				case 'Boolean':
-					return 'boolean';
-				case 'DateTime':
-				case 'DateTimeOffset':
-					return 'timestamp with time zone';
-				case 'DateOnly':
-					return 'date';
-				case 'TimeOnly':
-					return 'time';
-				case 'Guid':
-					return 'uuid';
-				case 'List`1':
-					// C# List<T>는 PostgreSQL ARRAY 타입으로 매핑
-					return 'text[]'; // 예시로 text[]를 사용, 실제로는 T에 따라 달라질 수 있음
-				case 'Dictionary`2':
-					// Dictionary<TKey, TValue>는 PostgreSQL JSONB로 매핑
-					return 'jsonb';
-				default:
-					return dotNetType; // 정의되지 않은 타입
-			  }
-			}
-			
+              return { createTableQuery, commentQuery, createTableHisQuery, commentHisQuery};
+            }
+
+            /**
+             * .NET 타입을 PostgreSQL 타입으로 변환합니다.
+             * @param {string} dotNetType - .NET 데이터 타입 문자열.
+             * @returns {string} - PostgreSQL 데이터 타입 문자열.
+             */
+            function convertToPostgresType(dotNetType) {
+              switch (dotNetType) {
+                case 'String':
+                    return 'text';
+                case 'Int32':
+                    return 'integer';
+                case 'Int64':
+                    return 'bigint';
+                case 'Single':
+                    return 'real';
+                case 'Double':
+                    return 'double precision';
+                case 'Decimal':
+                    return 'numeric';
+                case 'Boolean':
+                    return 'boolean';
+                case 'DateTime':
+                case 'DateTimeOffset':
+                    return 'timestamp with time zone';
+                case 'DateOnly':
+                    return 'date';
+                case 'TimeOnly':
+                    return 'time';
+                case 'Guid':
+                    return 'uuid';
+                case 'List`1':
+                    // C# List<T>는 PostgreSQL ARRAY 타입으로 매핑
+                    return 'text[]'; // 예시로 text[]를 사용, 실제로는 T에 따라 달라질 수 있음
+                case 'Dictionary`2':
+                    // Dictionary<TKey, TValue>는 PostgreSQL JSONB로 매핑
+                    return 'jsonb';
+                default:
+                    return dotNetType; // 정의되지 않은 타입
+              }
+            }
+            
             let leftTextVal = leftText.value;
-			
-			// 함수 실행
-			const result = generateCreateTableAndComments(leftTextVal);
+            
+            // 함수 실행
+            const result = generateCreateTableAndComments(leftTextVal);
 
             rightText.value = result.createTableQuery + "\n";
-			rightText.value += result.commentQueries.join('\n');
-
-            Auto01();
-        }
-        function Func89() {
-            let leftTextVal = leftText.value;
-
-            let textList = leftTextVal.split('\n');
-			let str = "";
-			let str2 = "";
-			let strSplit = [];
-			let ele = "";
-			let table_name = textList[0].split(/\t/g)[0]
-			for(let i=2; i < textList.length; i++){
-				ele = textList[i];
-				strSplit = ele.split(/\t/g);
-				str += strSplit[2] + " " + strSplit[4] + (strSplit[5] == "N"?" NOT NULL":"") + ",\n";
-				str2 += "COMMENT ON COLUMN " + table_name + "." + strSplit[2] + " IS '" + strSplit[strSplit.length-1] + "';\n";
-			}
-
-            rightText.value = str.replaceAll("wotz", "without time zone");
-			rightText.value += str2;
-
-            Auto01();
-        }
-        function Func90() {
-            let leftTextVal = leftText.value;
-
-            leftTextVal = leftTextVal.replace(/,/g, "\n        ,");
-			leftTextVal = leftTextVal.replace(/,[\s]+/g, ", ");
-
-            rightText.value = leftTextVal;
-
-            Auto01();
-        }
-        function Func91() {
-            let leftTextVal = leftText.value;
-
-			leftTextVal = leftTextVal.replace(/INSERT INTO/g, "INSERT INTO mi_");
-            leftTextVal = leftTextVal.replace(/\(N'/g, "('");
-            leftTextVal = leftTextVal.replace(/, N'/g, ", '");
-            leftTextVal = leftTextVal.replace(/\) VALUES/g, ", inact_yn) VALUES");
-            leftTextVal = leftTextVal.replace(/\);/g, ", 'N'\);");
-
-            rightText.value = leftTextVal;
-
-            Auto01();
-        }
-        function Func92() {
-            function pad(num) {
-                return num.toString().padStart(2, "0");
-            }
-			function yyyyMMdd(date){
-				return date.getFullYear()+"-"+pad(date.getMonth() + 1)+"-"+pad(date.getDate());
-			}
-			function yyyyMMdd2(date){
-				const map = {
-				  1: '월',
-				  2: '화',
-				  3: '수',
-				  4: '목',
-				  5: '금',
-				  6: '토',
-				  7: '일'
-				};
-				return date.getFullYear()+"."+pad(date.getMonth() + 1)+"."+pad(date.getDate())
-				    + " " + map[date.getDay()] + "요일"
-			}
-			let date = new Date();
-            rightText.value = "황진범 " + yyyyMMdd(date) + " 일일 업무보고서\n";
-			rightText.value += yyyyMMdd2(date) + "\n";
-			rightText.value += "[완료]\n★LNF ABB\n★남서울대\n[진행중]\n★\n";
-			
-			let date2 = new Date();
-			date2.setDate(date2.getDate() - 4);
-			let start = date2.getDate();
-			let end = date.getDate();
-			rightText.value += "황진범 " + date.getFullYear() + "/" + pad(date.getMonth() + 1) + " " + start + "~" + end + "일 주간업무보고\n";
-			
-			rightText.value += "황진범 " + yyyyMMdd(date) + " 휴가신청서(오후반차)\n";
-			rightText.value += "황진범 " + yyyyMMdd(date) + " 지출결의서\n";
-            Auto01();
-        }
-        function Func93() {
-            let leftTextVal = leftText.value;
-
-            leftTextVal = leftTextVal.replace(/\\n/g, "\n");
-
-            rightText.value = leftTextVal;
-
-            Auto01();
-        }
-        function Func94() {
-            let leftTextVal = leftText.value;
-            let leftTextValArr = leftTextVal.split(/\s/g);
-            let leftTextSpaceArr = leftTextVal.match(/\s/g);
-            let result = "";
-
-            for (let i = 0; i < leftTextValArr.length; i++) {
-                result += leftTextValArr[i].replace(/^[A-Z]/g, str => str.toLowerCase()).replace(/[A-Z]/g, str => "_" + str).toUpperCase();
-                if (i != leftTextValArr.length - 1) {
-                    result += leftTextSpaceArr[i];
-                }
-            }
-
-            rightText.value = result;
-
-            Auto01();
-        }
-        function Func95() {
-            let leftTextVal = leftText.value;
-            let leftTextValArr = leftTextVal.split(/\s/g);
-            let leftTextSpaceArr = leftTextVal.match(/\s/g);
-            let result = "";
-
-            for (let i = 0; i < leftTextValArr.length; i++) {
-                result += leftTextValArr[i].toLowerCase().replace(/_[a-z]/g, str => str[1].toUpperCase());
-                if (i != leftTextValArr.length - 1) {
-                    result += leftTextSpaceArr[i];
-                }
-            }
-
-            rightText.value = result;
-
-            Auto01();
-        }
-        function Func96() {
-            let leftTextVal = leftText.value;
-
-            let table_name;
-            let table_comment;
-
-            leftTextVal.replace(/CREATE TABLE `([A-Z_0-9]+)`[ ]*/, (_, match) => {
-                table_name = match.toLowerCase();
-                return false;
-            });
-
-
-            table_comment = leftTextVal.match(/(?<=COMMENT=\')(.+)(?=\')/)?.[0] ?? "";
-
-            leftTextVal = leftTextVal.replace(/`([A-Z_0-9]+)`/g, (_, match) => {
-                // 특정 단어는 그대로 유지
-                if (match === "DTWIN_LNF") return `"${match}"`;
-                return match.toLowerCase();
-            });
-
-            leftTextVal = leftTextVal.replace("CREATE TABLE ", "CREATE TABLE public.")
-                .replace("PRIMARY KEY", `CONSTRAINT pk_${table_name} PRIMARY KEY`)
-                .replace("UNIQUE KEY", `CONSTRAINT uk_${table_name} UNIQUE`)
-                .replace(/(?<=UNIQUE).*(?=\()/, "")
-
-
-            let str = "";
-            let arr = leftTextVal.split("\n");
-            for (let i = 0; i < arr.length; i++) {
-                if (arr[i].includes("COMMENT ")) {
-                    str += `COMMENT ON COLUMN public.${table_name}.${arr[i].split(/[ ]+/)[1]} IS ${arr[i].replace(/.*COMMENT[\s]+/, "").replace(/,$/, ";")}\n`;
-                }
-
-            }
-
-            leftTextVal = leftTextVal.replace(/[\s]*COMMENT.*/g, ",");
-
-
-            leftTextVal += `
-TABLESPACE pg_default;
-ALTER TABLE IF EXISTS public.${table_name} OWNER to "DTWIN_LNF";
-GRANT ALL ON TABLE public.${table_name} TO "DTWIN_LNF";
-COMMENT ON TABLE public.${table_name} IS '${table_comment}';
-`;
-
-            leftTextVal += str;
-
-            rightText.value = leftTextVal;
-
-            Auto01();
-        }
-        function Func97() {
-            let leftTextVal = leftText.value;
-
-            leftTextVal = leftTextVal.replace(/`([A-Z_0-9]+)`/g, (_, match) => {
-                // 특정 단어는 그대로 유지
-                if (match === "DTWIN_LNF") return `"${match}"`;
-                return match.toLowerCase();
-            });
-
-            rightText.value = leftTextVal;
-
-            Auto01();
-        }
-        function Func98() {
-            let leftTextVal = leftText.value;
-
-            leftTextVal = leftTextVal.replace(/""([A-Z_0-9]+)""/g, (_, match) => {
-                // 특정 단어는 그대로 유지
-                if (match === "DTWIN_LNF") return `"${match}"`;
-                return match.toLowerCase();
-            });
-
-            rightText.value = leftTextVal;
-
-            Auto01();
-        }
-        function Func99() {
-            let leftTextVal = leftText.value;
-
-            leftTextVal = leftTextVal.replace(/"([A-Z_0-9]+)"/g, (_, match) => {
-                // 특정 단어는 그대로 유지
-                if (match === "DTWIN_LNF") return `"${match}"`;
-                return match.toLowerCase();
-            });
-
-            rightText.value = leftTextVal;
+            rightText.value += result.commentQuery + "\n";
+            rightText.value += result.createTableHisQuery + "\n";
+            rightText.value += result.commentHisQuery;
 
             Auto01();
         }
