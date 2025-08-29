@@ -763,36 +763,35 @@ function Func22() {
     const tableName = ipt_1.value;
 
     // 첫 번째 컬럼 생성: 테이블명에서 _로 나누고 첫 글자 따서 id 붙이기
-    const parts = tableName.split('_').map(p => p[0]).join('');
-    const firstColName = `${parts}_id`;
+    const firstColName = tableName.split('_').map(p => p[0]).join('') + "_id";
 
     const lines = leftText.value.split('\n');
     let columns = [`${firstColName} bigint NOT NULL,`]; // 첫 번째 컬럼
     let comments = [];
-	comments.push(`COMMENT ON TABLE ${tableName} IS '${ipt_2.value}';`);
 
     lines.forEach(line => {
-        const parts = line.split('\t').map(p => p.trim()).filter(p => p);
+        const parts = line.split('\t').map(p => p.trim());
         if(parts.length < 2) return;
 
-        let colName = parts[0].replace(/^\$\.\w+\.data\[\]\./, '');
-        let pgType = convertMsPg(parts[1]); // 기존 convert 함수 사용
+        // $.payload.data[]. 혹은 $.data[]. 제거
+        let colName = parts[0].replace(/^\$\.(payload\.)?data\[\]\./, '');
+        let pgType = convertMsPg(parts[1]); // 기존 convertMsPg 함수 사용
         let notNull = parts[2] === 'N' ? ' NOT NULL' : '';
 
         columns.push(`${colName} ${pgType}${notNull},`);
 
-        if(parts[3]) {
-            comments.push(`COMMENT ON COLUMN ${tableName}.${colName} IS '${parts[3]}';`);
-        }
+        // 주석 처리: parts[3]가 없으면 빈 문자열도 허용
+        const commentText = parts[3] ? parts[3] : '';
+        comments.push(`COMMENT ON COLUMN ${tableName}.${colName} IS '${commentText}';`);
     });
 
     // 고정 컬럼 추가
     columns.push(
-        `reg_id text,`,
+        `reg_id text COLLATE pg_catalog."default",`,
         `reg_dm timestamp without time zone,`,
-        `upd_id text,`,
+        `upd_id text COLLATE pg_catalog."default",`,
         `upd_dm timestamp without time zone,`,
-        `inact_yn text,`
+        `inact_yn text COLLATE pg_catalog."default"`
     );
 
     comments.push(
@@ -803,16 +802,20 @@ function Func22() {
         `COMMENT ON COLUMN ${tableName}.inact_yn IS '데이터제외구분';`
     );
 
-    // 제약 조건 추가 (CREATE TABLE 안에서)
+    // 마지막 쉼표 제거
+    if(columns.length > 0) {
+        const lastIndex = columns.length - 1;
+        columns[lastIndex] = columns[lastIndex].replace(/,$/, '');
+    }
+
+    // 테이블 생성 + 제약조건 (CREATE TABLE 안에서)
     columns.push(
-        `CONSTRAINT ${tableName}_pkey PRIMARY KEY ()`,
+        `CONSTRAINT ${tableName}_pkey PRIMARY KEY (asst_cd, revision_no, asst_group_cd, company),`,
         `CONSTRAINT ${tableName}_${firstColName}_key UNIQUE (${firstColName})`
     );
 
-    // 테이블 생성
-    let createTable = `CREATE TABLE ${tableName} (\n${columns.map(c => '    ' + c).join('\n')}\n);\n`;
+    const createTable = `CREATE TABLE ${tableName} (\n${columns.map(c => '    ' + c).join('\n')}\n);\n`;
 
-    // 결과 출력
     rightText.value = createTable + '\n' + comments.join('\n');
 
     Auto01();
