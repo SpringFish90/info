@@ -541,6 +541,7 @@ let match;
 const columns = [];
 while ((match = columnRegex.exec(sql)) !== null) {
     const colName = match[1].toUpperCase();
+	console.log(colName);
     if (["CONSTRAINT","TABLESPACE","ALTER","OWNER","COMMENT","CREATE"].includes(colName)) continue;
 
     const colType = match[2].trim().toLowerCase();
@@ -554,6 +555,12 @@ while ((match = columnRegex.exec(sql)) !== null) {
         suffix: suffix
     });
 }
+
+columns.push({
+	name: "ACT_TYPE",
+	suffix: ".V"
+});
+
 
 // REG_DM, UPD_DM은 NULL
 const columnsForProc = columns.map(c => {
