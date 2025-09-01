@@ -320,8 +320,6 @@ function Func11() {
 
     // PERFORM 히스토리용 컬럼 줄바꿈 (p_reg_dm → NOW(), p_upd_dm → NULL)
     const performCols = columns.map(c => {
-        if (c === "reg_dm") return "NOW()";
-        if (c === "upd_dm") return "NULL";
         return `p_${c}`;
     }).join(",\n        ");
 
