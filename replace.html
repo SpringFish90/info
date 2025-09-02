@@ -244,8 +244,7 @@ COMMENT ON COLUMN ${historyTableName}.his_state IS '변경상태';
   ddl = ddl.replace(
     /COMMENT ON TABLE\s+([^\s]+)\s+IS\s+'([^']+)';/gi,
     (match, tableName, comment) => {
-      const historyTable = tableName + "_history";
-      return `COMMENT ON TABLE ${historyTable} IS '${comment} 변경내역';`;
+      return `COMMENT ON TABLE ${tableName} IS '${comment} 변경내역';`;
     }
   );
 
@@ -541,7 +540,6 @@ let match;
 const columns = [];
 while ((match = columnRegex.exec(sql)) !== null) {
     const colName = match[1].toUpperCase();
-	console.log(colName);
     if (["CONSTRAINT","TABLESPACE","ALTER","OWNER","COMMENT","CREATE"].includes(colName)) continue;
 
     const colType = match[2].trim().toLowerCase();
@@ -646,7 +644,7 @@ namespace HS.Web.Proc
 `;
 
 			Auto01();
-            Auto02(`${className}.cs`);
+            Auto02(`fn_${className}.cs`);
 		}
 		function Func20() {
 // leftText.value에 MSSQL CREATE TABLE 문자열이 들어있다고 가정
