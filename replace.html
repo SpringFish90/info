@@ -282,10 +282,10 @@ function Func11() {
 
     const pkUniqueCols = [...new Set([...pkCols, ...uniqueCols])];
 
-    // INSERT 컬럼 (upd_dm, upd_id 제외, reg_dm/NOW() 처리)
-    const insertCols = columns.filter(c => !["upd_id","upd_dm"].includes(c));
+    // INSERT 컬럼 (upd_dm 제외, reg_dm/NOW() 처리)
+    const insertCols = columns.filter(c => !["upd_dm"].includes(c));
     const insertValues = insertCols.map(c => {
-        if (c === "reg_dm" || c === "upd_dm") return "NOW()";
+        if (c === "reg_dm") return "NOW()";
         return `p_${c}`;
     }).join(",\n        ");
 
@@ -313,7 +313,7 @@ function Func11() {
         .map(line => {
             let parts = line.replace(/COLLATE pg_catalog\."default"/gi, '').trim();
             let colName = parts.split(/\s+/)[0];
-            let colType = parts.slice(colName.length).trim();
+            let colType = parts.slice(colName.length).trim().replace(/NOT\s+NULL/gi, '').replace(/,$/, '').trim();
             return `p_${colName} ${colType}`;
         })
         .join(",\n    ");
@@ -408,7 +408,7 @@ const pColsDef = columnsMatch[1]
   .map(line => {
     let parts = line.replace(/COLLATE pg_catalog\."default"/gi, '').trim();
     let colName = parts.split(/\s+/)[0];
-    let colType = parts.slice(colName.length).trim();
+    let colType = parts.slice(colName.length).trim().replace(/NOT\s+NULL/gi, '').replace(/,$/, '').trim();
     return `p_${colName} ${colType}`;
   })
   .join(",\n    ");
@@ -757,7 +757,7 @@ rightText.value = `CREATE TABLE IF NOT EXISTS ${tableName} (\n    ${pgCols.join(
 			comments.push(`COMMENT ON COLUMN ${tableName}.inact_yn IS '데이터제외구분';`);
 
 			// CREATE TABLE 문 생성
-			const createTableQuery = `CREATE TABLE IF NOT EXISTS ${tableName} (\n  ${columns.join(',\n  ')}\n);`;
+			const createTableQuery = `CREATE TABLE ${tableName} (\n  ${columns.join(',\n  ')}\n);`;
 			const commentQuery = comments.join('\n');
 
 			rightText.value = createTableQuery + "\n" + commentQuery;
