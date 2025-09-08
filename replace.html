@@ -314,7 +314,7 @@ function Func11() {
     );
     const distinctWhere = distinctCols.map(c => `${fullTableName}.${c.name} IS DISTINCT FROM p_${c.name}`);
 
-    const pColsDef = columns.map(c => `p_${c.name} ${c.type}`).join(",\n    ");
+    const pColsDef = columns.map(c => `p_${c.name} ${c.type.replaceAll(/DEFAULT.*/g,"").replaceAll(/NOT NULL.*/g, "").trim()}`).join(",\n    ");
 
     rightText.value = `CREATE OR REPLACE FUNCTION public.fn_${baseName}(
     ${pColsDef},
@@ -372,7 +372,7 @@ function Func12() {
     const { baseName, columns } = info;
     const historyTable = `${baseName}_history`;
 
-    const pColsDef = columns.map(c => `p_${c.name} ${c.type}`).join(",\n    ");
+    const pColsDef = columns.map(c => `p_${c.name} ${c.type.replaceAll(/DEFAULT.*/g,"").replaceAll(/NOT NULL.*/g, "").trim()}`).join(",\n    ");
 
     const insertCols = ["his_uuid","his_dm","his_state",...columns.map(c => c.name)];
     const insertValues = ["v_his_uuid","NOW()","p_his_state",...columns.map(c =>
