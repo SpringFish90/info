@@ -483,7 +483,7 @@ namespace HS.Web.Proc
             sSQL.Append($@"
                 SELECT * FROM fn_${info.baseName}
                 (
-                    ${(columns.join(",\n                    "))}
+                    ${(columns.join(",\n                    "))},
                     {Data["REG_ID"].V},
                     NULL,
                     {Data["UPD_ID"].V},
@@ -752,3 +752,4 @@ function Func22() {
     </script>
 </body>
 </html>
+
