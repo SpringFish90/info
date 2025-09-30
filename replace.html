@@ -54,6 +54,7 @@
             <input id="ipt_3" placeholder="3" style="width:166px;">
             <button onclick="Func02()">문장 뒤 공백 제거</button>
             <button onclick="Func03()">탭을 공백4칸으로</button>
+			<button onclick="Func06()">\n을 엔터로</button>
             <button onclick="Func04()">1내용2</button>
             <button onclick="Func05()">Json Pretty</button>
             <button onclick="Func08()">1양식</button>
@@ -62,7 +63,8 @@
             <button onclick="Func11()">pgTb→fn_Tb</button>
             <button onclick="Func12()">pgTb→fn_TbHis</button>
             <button onclick="Func13()">pgTb→Tb.cs</button>
-            <button onclick="Func14()">pgTb→fn_Tb.cs</button>
+            <button onclick="Func14(1)">pgTb→fn_Tb.cs(대)</button>
+            <button onclick="Func14(2)">pgTb→fn_Tb.cs(소)</button>
             <br>
             <button onclick="Func20()">MsSQL→pgTb</button>
             <button onclick="Func21()">123QMS→pgTb</button>
@@ -196,6 +198,15 @@
             let leftTextVal = leftText.value;
 
             leftTextVal = leftTextVal.replace(/\t/g, "    ");
+
+            rightText.value = leftTextVal;
+
+            Auto01();
+        }
+        function Func06() {
+            let leftTextVal = leftText.value;
+
+            leftTextVal = leftTextVal.replace(/\\n/g, "\n");
 
             rightText.value = leftTextVal;
 
@@ -441,7 +452,7 @@ ${colsForCs.map(c =>
 }
 
 // --- Func14: pgTb → fn_Tb.cs ---
-function Func14() {
+function Func14(upper_lower) {
     const ddl = leftText.value;
     const info = parseDdl(ddl);
     if (!info) { rightText.value = "parseDdl 실패"; return; }
@@ -458,7 +469,11 @@ function Func14() {
         } else if(e.type.includes("timestamp") || e.type.includes("date")){
             dv = "DT";
         }
-        columns.push(`{Data["${e.name}"].${dv}}`);
+		if(upper_lower == 1){
+			columns.push(`{Data["${e.name.toUpperCase()}"].${dv}}`);
+		} else {
+			columns.push(`{Data["${e.name.toLowerCase()}"].${dv}}`);
+		}
     }
 
     rightText.value = `using HS.Core;
@@ -752,4 +767,3 @@ function Func22() {
     </script>
 </body>
 </html>
-
