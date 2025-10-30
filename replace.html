@@ -41,8 +41,8 @@
     </div>
     <div class="button-container">
         <div>
-            <button onclick="Func00()">왼쪽으로 이동</button>
-            <button onclick="Func01()">오른쪽을 복사</button>
+            <button onclick="MoveToLeft()">왼쪽으로 이동</button>
+            <button onclick="CopyRightText()">오른쪽을 복사</button>
             <input type="checkbox" id="auto01" name="auto01">
             <label for="auto01">오른쪽 복사 자동</label>
             <input type="checkbox" id="auto02" name="auto02">
@@ -52,28 +52,29 @@
             <input id="ipt_1" placeholder="1" style="width:166px;">
             <input id="ipt_2" placeholder="2" style="width:166px;">
             <input id="ipt_3" placeholder="3" style="width:166px;">
-            <button onclick="Func02()">문장 뒤 공백 제거</button>
-            <button onclick="Func03()">탭을 공백4칸으로</button>
-			<button onclick="Func06()">\n을 엔터로</button>
-            <button onclick="Func04()">1내용2</button>
-            <button onclick="Func05()">Json Pretty</button>
-            <button onclick="Func08()">1양식</button>
+            <button onclick="TrimEnd()">문장 뒤 공백 제거</button>
+            <button onclick="TabToSpace()">탭을 공백4칸으로</button>
+			<button onclick="UnescapeNewline()">\n을 엔터로</button>
+            <button onclick="WrapText()">1내용2</button>
+            <button onclick="JsonPretty()">Json Pretty</button>
+            <button onclick="VariousForms()">1양식</button>
             <br>
-            <button onclick="Func10()">pgTb→TbHis</button>
-            <button onclick="Func11()">pgTb→fn_Tb</button>
-            <button onclick="Func12()">pgTb→fn_TbHis</button>
-            <button onclick="Func13()">pgTb→Tb.cs</button>
-            <button onclick="Func14(1)">pgTb→fn_Tb.cs(대)</button>
-            <button onclick="Func14(2)">pgTb→fn_Tb.cs(소)</button>
+            <button onclick="pgTbToTbHis()">pgTb→TbHis</button>
+            <button onclick="pgTbToFnTb()">pgTb→fn_Tb</button>
+            <button onclick="pgTbToFnTbHis()">pgTb→fn_TbHis</button>
+            <button onclick="pgTbToTbCs()">pgTb→Tb.cs</button>
+            <button onclick="pgTbToFnTbCs(1)">pgTb→fn_Tb.cs(대)</button>
+            <button onclick="pgTbToFnTbCs(2)">pgTb→fn_Tb.cs(소)</button>
             <br>
-            <button onclick="Func20()">MsSQL→pgTb</button>
-            <button onclick="Func21()">123QMS→pgTb</button>
-            <button onclick="Func22()">12MMADDOCS→pgTb</button>
+            <button onclick="pgTbToFnTb2()">pgTb→fn_Tb</button>
+            <br>
+            <button onclick="msSqlToPgTb()">MsSQL→pgTb</button>
+            <button onclick="QmsToPgTb()">123QMS→pgTb</button>
+            <button onclick="MmadDocsToPgTb()">12MMADDOCS→pgTb</button>
         </div>
     </div>
 
     <script>
-        // 타입 변환 함수들
         function convertMsPg(mssqlType) {
             mssqlType = mssqlType.toLowerCase();
             if (mssqlType.startsWith('nvarchar') || mssqlType.startsWith('varchar')) return 'text';
@@ -82,7 +83,7 @@
             if (mssqlType.startsWith('numeric')) {
                 const m = mssqlType.match(/numeric\s*\(\s*\d+(\s*,\s*\d+)?\s*\)/i);
                 if (m) return m[0].toLowerCase();
-                return 'numeric(15,4)'; // fallback
+                return 'numeric(15,4)';
             }
             return 'text';
         }
@@ -157,7 +158,7 @@
         }
         function Auto01() {
             if (document.getElementById("auto01").checked) {
-                Func01();
+                CopyRightText();
             }
         }
         function Auto02(fileName) {
@@ -174,18 +175,18 @@
                 URL.revokeObjectURL(url);
             }
         }
-        function Func00() {
+        function MoveToLeft() {
             let rightTextVal = rightText.value;
 
             leftText.value = rightTextVal;
             rightText.value = "";
         }
-        function Func01() {
+        function CopyRightText() {
             rightText.select();
             document.execCommand('copy');
             leftText.focus();
         }
-        function Func02() {
+        function TrimEnd() {
             let leftTextVal = leftText.value;
 
             leftTextVal = leftTextVal.replace(/[ \t]+$/gm, '');
@@ -194,7 +195,7 @@
 
             Auto01();
         }
-        function Func03() {
+        function TabToSpace() {
             let leftTextVal = leftText.value;
 
             leftTextVal = leftTextVal.replace(/\t/g, "    ");
@@ -203,7 +204,7 @@
 
             Auto01();
         }
-        function Func06() {
+        function UnescapeNewline() {
             let leftTextVal = leftText.value;
 
             leftTextVal = leftTextVal.replace(/\\n/g, "\n");
@@ -212,7 +213,7 @@
 
             Auto01();
         }
-        function Func04() {
+        function WrapText() {
             let leftTextVal = leftText.value;
 
             leftTextVal = leftTextVal.replace(/^(.+)$/gm, ipt_1.value + '$1' + ipt_2.value);
@@ -221,7 +222,7 @@
 
             Auto01();
         }
-        function Func05() {
+        function JsonPretty() {
             let leftTextVal = leftText.value;
 
             try{
@@ -231,7 +232,7 @@
             }
             Auto01();
         }
-        function Func08() {
+        function VariousForms() {
             function pad(num) {
                 return num.toString().padStart(2, "0");
             }
@@ -265,8 +266,7 @@
             rightText.value += ipt_1.value + " " + yyyyMMdd(date) + " 지출결의서\n";
             Auto01();
         }
-// --- Func10: pgTb → TbHis ---
-function Func10() {
+function pgTbToTbHis() {
     const ddl = leftText.value;
     const info = parseDdl(ddl);
     if (!info) { rightText.value = "parseDdl 실패"; return; }
@@ -299,9 +299,7 @@ TABLESPACE pg_default;`;
     rightText.value = ddlOut.trim();
     Auto01();
 }
-
-// --- Func11: pgTb → fn_Tb ---
-function Func11() {
+function pgTbToFnTb() {
     const ddl = leftText.value;
     const info = parseDdl(ddl);
     if (!info) { rightText.value = "parseDdl 실패"; return; }
@@ -309,15 +307,15 @@ function Func11() {
     const { fullTableName, baseName, columns, primaryKey, uniqueKeys } = info;
     const pkUniqueCols = [...new Set([...primaryKey, ...uniqueKeys.flat()])];
 
-    const insertCols = columns.filter(c => c.name !== "upd_dm");
+    const insertCols = columns.filter(c => !["upd_id", "upd_dm"].includes(c.name));
     const insertNames = insertCols.map(c => c.name);
-    const insertValues = insertCols.map(c => c.name === "reg_dm" ? "NOW()" : `p_${c.name}`);
+    const insertValues = insertCols.map(c => ["reg_dm"].includes(c.name) ? "NOW()" : `p_${c.name}`);
 
     const updateCols = columns.filter(c =>
         !pkUniqueCols.includes(c.name) && !["reg_id", "reg_dm"].includes(c.name)
     );
     const updateSet = updateCols.map(c =>
-        c.name === "upd_dm" ? `${c.name} = NOW()` : `${c.name} = p_${c.name}`
+        ["upd_dm"].includes(c.name) ? `${c.name} = NOW()` : `${c.name} = p_${c.name}`
     );
 
     const distinctCols = columns.filter(c =>
@@ -331,7 +329,7 @@ function Func11() {
     ${pColsDef},
     p_act_type text
 )
-RETURNS TABLE(r_${columns[0].name} bigint)
+RETURNS TABLE(r_${columns[0].name} ${columns[0].type.replace(/ .*/, '')})
 LANGUAGE plpgsql
 AS $BODY$
 DECLARE
@@ -373,9 +371,7 @@ END;
 $BODY$;`;
     Auto01();
 }
-
-// --- Func12: pgTb → fn_TbHis ---
-function Func12() {
+function pgTbToFnTbHis() {
     const ddl = leftText.value;
     const info = parseDdl(ddl);
     if (!info) { rightText.value = "parseDdl 실패"; return; }
@@ -414,9 +410,7 @@ END;
 $BODY$;`;
     Auto01();
 }
-
-// --- Func13: pgTb → Tb.cs ---
-function Func13() {
+function pgTbToTbCs() {
     const ddl = leftText.value;
     const info = parseDdl(ddl);
     if (!info) { rightText.value = "parseDdl 실패"; return; }
@@ -450,9 +444,7 @@ ${colsForCs.map(c =>
 }`;
     Auto01();
 }
-
-// --- Func14: pgTb → fn_Tb.cs ---
-function Func14(upper_lower) {
+function pgTbToFnTbCs(upper_lower) {
     const ddl = leftText.value;
     const info = parseDdl(ddl);
     if (!info) { rightText.value = "parseDdl 실패"; return; }
@@ -588,7 +580,7 @@ namespace HS.Web.Proc
 
     Auto01();
 }
-function Func20() {
+function msSqlToPgTb() {
 // leftText.value에 MSSQL CREATE TABLE 문자열이 들어있다고 가정
 const lines = leftText.value.trim().split(/\r?\n/).map(l => l.trim()).filter(l => l);
 
@@ -653,7 +645,7 @@ rightText.value = `CREATE TABLE IF NOT EXISTS ${tableName} (\n    ${pgCols.join(
 
             Auto01();
         }
-        function Func21() {
+        function QmsToPgTb() {
             const lines = leftText.value.trim().split('\n');
             if (lines.length < 1) return;
 
@@ -703,7 +695,7 @@ rightText.value = `CREATE TABLE IF NOT EXISTS ${tableName} (\n    ${pgCols.join(
 
             Auto01();
         }
-function Func22() {
+function MmadDocsToPgTb() {
     const tableName = ipt_1.value;
 
     // 첫 번째 컬럼 생성: 테이블명에서 _로 나누고 첫 글자 따서 id 붙이기
@@ -762,6 +754,53 @@ function Func22() {
 
     rightText.value = createTable + '\n' + comments.join('\n');
 
+    Auto01();
+}
+function pgTbToFnTb2() {
+    const ddl = leftText.value;
+    const info = parseDdl(ddl);
+    if (!info) { rightText.value = "parseDdl 실패"; return; }
+
+    const { fullTableName, baseName, columns, primaryKey, uniqueKeys } = info;
+    const pkUniqueCols = [...new Set([...primaryKey, ...uniqueKeys.flat()])];
+
+    const insertCols = columns.filter(c => !["upd_id", "upd_dm"].includes(c.name));
+    const insertNames = insertCols.map(c => c.name);
+    const insertValues = insertCols.map(c => ["reg_dm"].includes(c.name) ? "NOW()" : `p_${c.name}`);
+
+    const updateCols = columns.filter(c =>
+        !pkUniqueCols.includes(c.name) && !["reg_id", "reg_dm"].includes(c.name)
+    );
+    const updateSet = updateCols.map(c =>
+        ["upd_dm"].includes(c.name) ? `${c.name} = NOW()` : `${c.name} = p_${c.name}`
+    );
+
+    const pColsDef = columns.filter(c => !["reg_dm", "upd_dm"].includes(c.name)).map(c => `p_${c.name} ${c.type.replaceAll(/DEFAULT.*/g,"").replaceAll(/NOT NULL.*/g, "").trim()}`).join(",\n    ");
+
+    rightText.value = `CREATE OR REPLACE FUNCTION public.fn_${baseName}(
+    ${pColsDef}
+)
+RETURNS TABLE(r_${columns[0].name} ${columns[0].type.replace(/ .*/, '')})
+LANGUAGE plpgsql
+AS $BODY$
+DECLARE
+    v_action bigint;
+BEGIN
+
+    INSERT INTO ${fullTableName}(
+        ${insertNames.join(",\n        ")}
+    ) VALUES (
+        ${insertValues.join(",\n        ")}
+    )
+    ON CONFLICT ON CONSTRAINT ${baseName}_pkey
+    DO UPDATE SET
+        ${updateSet.join(",\n        ")}
+    RETURNING xmax INTO v_action;
+
+    RETURN QUERY
+    SELECT p_${columns[0].name};
+END;
+$BODY$;`;
     Auto01();
 }
     </script>
