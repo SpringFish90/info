@@ -66,11 +66,14 @@
             <button onclick="pgTbToFnTbCs(1)">pgTb→fn_Tb.cs(대)</button>
             <button onclick="pgTbToFnTbCs(2)">pgTb→fn_Tb.cs(소)</button>
             <br>
+            <button onclick="msSqlToPgTb2()">MsSQL→pgTb</button>
             <button onclick="pgTbToFnTb2()">pgTb→fn_Tb</button>
+            <button onclick="pgTbToFnTbCs2(2)">pgTb→fn_Tb.cs(소)</button>
             <br>
             <button onclick="msSqlToPgTb()">MsSQL→pgTb</button>
             <button onclick="QmsToPgTb()">123QMS→pgTb</button>
             <button onclick="MmadDocsToPgTb()">12MMADDOCS→pgTb</button>
+            <button onclick="MesToPgTb()">12MES→pgTb</button>
         </div>
     </div>
 
@@ -581,7 +584,6 @@ namespace HS.Web.Proc
     Auto01();
 }
 function msSqlToPgTb() {
-// leftText.value에 MSSQL CREATE TABLE 문자열이 들어있다고 가정
 const lines = leftText.value.trim().split(/\r?\n/).map(l => l.trim()).filter(l => l);
 
 // 테이블명 추출 (CREATE TABLE [DB].[Schema].[TableName] 또는 CREATE TABLE TableName)
@@ -756,6 +758,44 @@ function MmadDocsToPgTb() {
 
     Auto01();
 }
+function msSqlToPgTb2() {
+		let str = leftText.value.replace(/(nvarchar|varchar)\(\d+\)/g, "text")
+			.replaceAll(" COLLATE Korean_Wansung_CI_AS", "");
+		let strList = str.split("\n");
+		console.log(strList);
+		let strListStart = -1;
+		let tableName = "";
+		let rtnStr = "";
+		for(let i = 0; i < strList.length; i++){
+			let strOne = strList[i].trim();
+			if(strListStart < 0 && strOne.startsWith("CREATE TABLE")){
+				strListStart = i;
+				tableName = /CREATE TABLE .+\.(\w+)/.exec(strList[i])[1].toLowerCase();
+				rtnStr = "CREATE TABLE " + tableName + "(\n";
+			} else if(strListStart > -1){
+				if(strOne.startsWith("CONSTRAINT")){
+					if(strOne.indexOf("PRIMARY KEY") > -1){
+						rtnStr += "reg_dm timestamp without time zone,\n";
+						rtnStr += "reg_id text,\n";
+						rtnStr += "upd_dm timestamp without time zone,\n";
+						rtnStr += "upd_id text,\n";
+						rtnStr += strOne.replace(/(?<=CONSTRAINT )\w+/, tableName + "_pkey").replace(/\([\w,]+\)/, e => e.toLowerCase()) + "\n";
+					}
+				} else if(strOne.startsWith("REGIST_DATE")
+					|| strOne.startsWith("REGIST_ID")
+					|| strOne.startsWith("CHANGE_DATE")
+					|| strOne.startsWith("CHANGE_ID")){
+				
+				} else {
+					rtnStr += strOne.replace(/(\w+) /, e => e.toLowerCase()) + "\n";
+				}
+			}
+		}
+		rightText.value = rtnStr;
+
+
+		Auto01();
+	}
 function pgTbToFnTb2() {
     const ddl = leftText.value;
     const info = parseDdl(ddl);
@@ -801,6 +841,60 @@ BEGIN
     SELECT p_${columns[0].name};
 END;
 $BODY$;`;
+    Auto01();
+}
+function pgTbToFnTbCs2(upper_lower) {
+    const ddl = leftText.value;
+    const info = parseDdl(ddl);
+    if (!info) { rightText.value = "parseDdl 실패"; return; }
+
+    const columns = [];
+
+    for(e of info.columns){
+        if(["reg_id","reg_dm","upd_id","upd_dm","inact_yn"].includes(e.name)){
+            continue;
+        }
+        let dv = "V";
+        if(e.type.includes("int") || e.type.includes("numeric") || e.type.includes("real")){
+            dv = "D";
+        } else if(e.type.includes("timestamp") || e.type.includes("date")){
+            dv = "DT";
+        }
+		if(upper_lower == 1){
+			columns.push(`{data["${e.name.toUpperCase()}"].${dv}}`);
+		} else {
+			columns.push(`{data["${e.name.toLowerCase()}"].${dv}}`);
+		}
+    }
+
+    rightText.value = `            sSQL.Append($@"
+SELECT * FROM fn_${info.baseName}
+(
+    ${(columns.join("\n    , "))}
+    , {data["reg_id"].V}
+    , {data["upd_id"].V}
+);");`;
+
+    Auto01();
+}
+function MesToPgTb() {
+	const lines = leftText.value.split('\n');
+	let regex = /INSERT INTO\s+([A-Z_]+)/;
+
+	let replaced = lines.map(line => {
+		return line.replace(regex, 'INSERT INTO ' + ipt_1.value);
+	}).join('\n');
+	
+	const match = replaced.match(/\(([^,]+),/);
+	
+	regex = new RegExp("\\(\\s*(" + match[1] + "\\s*,)", "g");
+
+	replaced = replaced.replace(regex, "(" + ipt_2.value + ", $1");
+	
+	replaced = replaced.replace(/VALUES\(/g, 'VALUES(seq(),');
+
+    rightText.value = replaced;
+
     Auto01();
 }
     </script>
