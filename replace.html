@@ -891,7 +891,11 @@ function MesToPgTb() {
 
 	replaced = replaced.replace(regex, "(" + ipt_2.value + ", $1");
 	
-	replaced = replaced.replace(/VALUES\(/g, 'VALUES(seq(),');
+	replaced = replaced.replace(/VALUES\(/g, 'VALUES(seq(), ');
+	
+	replaced = replaced.replace(/\(N'/g, "('");
+	
+	replaced = replaced.replace(/, N'/g, ", '");
 
     rightText.value = replaced;
 
