@@ -879,7 +879,7 @@ SELECT * FROM fn_${info.baseName}
 }
 function MesToPgTb() {
 	const lines = leftText.value.split('\n');
-	let regex = /INSERT INTO\s+([A-Z_]+)/;
+	let regex = /INSERT INTO\s+([A-Za-z0-9_]+)/;
 
 	let replaced = lines.map(line => {
 		return line.replace(regex, 'INSERT INTO ' + ipt_1.value);
