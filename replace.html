@@ -54,11 +54,12 @@
             <input id="ipt_3" placeholder="3" style="width:166px;">
             <button onclick="TrimEnd()">문장 뒤 공백 제거</button>
             <button onclick="TabToSpace()">탭을 공백4칸으로</button>
-			<button onclick="UnescapeNewline()">\n을 엔터로</button>
+            <button onclick="ReplaceText()">1을 2로</button>
             <button onclick="WrapText()">1내용2</button>
-            <button onclick="JsonPretty()">Json Pretty</button>
+            <button onclick="JsonPretty()">Json 이쁘게</button>
+			<button onclick="sqlUppercaseKeywords()">sql키워드만 대문자로</button>
             <button onclick="VariousForms()">1양식</button>
-            <br>
+			<br>
             <button onclick="pgTbToTbHis()">pgTb→TbHis</button>
             <button onclick="pgTbToFnTb()">pgTb→fn_Tb</button>
             <button onclick="pgTbToFnTbHis()">pgTb→fn_TbHis</button>
@@ -207,10 +208,10 @@
 
             Auto01();
         }
-        function UnescapeNewline() {
+        function ReplaceText() {
             let leftTextVal = leftText.value;
 
-            leftTextVal = leftTextVal.replace(/\\n/g, "\n");
+            leftTextVal = leftTextVal.replaceAll(ipt_1.value, ipt_2.value);
 
             rightText.value = leftTextVal;
 
@@ -269,66 +270,88 @@
             rightText.value += ipt_1.value + " " + yyyyMMdd(date) + " 지출결의서\n";
             Auto01();
         }
-function pgTbToTbHis() {
-    const ddl = leftText.value;
-    const info = parseDdl(ddl);
-    if (!info) { rightText.value = "parseDdl 실패"; return; }
+		function sqlUppercaseKeywords() {
+			const keywords = [
+				"select", "from", "where", "group", "by", "order", "limit",
+				"offset", "insert", "into", "values", "update", "set",
+				"delete", "create", "alter", "drop", "table", "view", "index",
+				"left", "right", "inner", "outer", "join", "on", "as",
+				"case", "when", "then", "else", "end", "distinct",
+				"and", "or", "not", "in", "exists", "like", "ilike",
+				"union", "except", "intersect", "having", "with"
+			];
 
-    const { schema, baseName, fullTableName, tableComment, columns } = info;
-    const historyTable = `${schema}.${baseName}_history`;
+			let result = leftText.value;
+
+			keywords.forEach(kw => {
+				const regex = new RegExp(`\\b${kw}\\b`, "gi");
+				result = result.replace(regex, kw.toUpperCase());
+			});
+			
+			rightText.value = result;
+
+			Auto01();
+		}
+		function pgTbToTbHis() {
+			const ddl = leftText.value;
+			const info = parseDdl(ddl);
+			if (!info) { rightText.value = "parseDdl 실패"; return; }
+
+			const { schema, baseName, fullTableName, tableComment, columns } = info;
+			const historyTable = `${schema}.${baseName}_history`;
 
 
 
-    const hisCols = [
-        { name: "his_uuid", type: "bigint NOT NULL", comment: "변경내역UUID" },
-        { name: "his_dm", type: "timestamp without time zone NOT NULL", comment: "변경일시" },
-        { name: "his_state", type: "text NOT NULL", comment: "변경상태" }
-    ];
-    const allCols = [...hisCols, ...columns];
-    const colDefs = allCols.map(c => `    ${c.name} ${c.type}`).join(",\n");
+			const hisCols = [
+				{ name: "his_uuid", type: "bigint NOT NULL", comment: "변경내역UUID" },
+				{ name: "his_dm", type: "timestamp without time zone NOT NULL", comment: "변경일시" },
+				{ name: "his_state", type: "text NOT NULL", comment: "변경상태" }
+			];
+			const allCols = [...hisCols, ...columns];
+			const colDefs = allCols.map(c => `    ${c.name} ${c.type}`).join(",\n");
 
-    let ddlOut = `CREATE TABLE IF NOT EXISTS ${historyTable}
+			let ddlOut = `CREATE TABLE IF NOT EXISTS ${historyTable}
 (
 ${colDefs},
     CONSTRAINT ${baseName}_history_pkey PRIMARY KEY (his_dm, his_uuid)
 )
 TABLESPACE pg_default;`;
 
-    ddlOut += `\n\nCOMMENT ON TABLE ${historyTable} IS '${tableComment} 변경내역';\n`;
-    allCols.forEach(c => {
-        ddlOut += `COMMENT ON COLUMN ${historyTable}.${c.name} IS '${c.comment}';\n`;
-    });
+			ddlOut += `\n\nCOMMENT ON TABLE ${historyTable} IS '${tableComment} 변경내역';\n`;
+			allCols.forEach(c => {
+				ddlOut += `COMMENT ON COLUMN ${historyTable}.${c.name} IS '${c.comment}';\n`;
+			});
 
-    rightText.value = ddlOut.trim();
-    Auto01();
-}
-function pgTbToFnTb() {
-    const ddl = leftText.value;
-    const info = parseDdl(ddl);
-    if (!info) { rightText.value = "parseDdl 실패"; return; }
+			rightText.value = ddlOut.trim();
+			Auto01();
+		}
+		function pgTbToFnTb() {
+			const ddl = leftText.value;
+			const info = parseDdl(ddl);
+			if (!info) { rightText.value = "parseDdl 실패"; return; }
 
-    const { fullTableName, baseName, columns, primaryKey, uniqueKeys } = info;
-    const pkUniqueCols = [...new Set([...primaryKey, ...uniqueKeys.flat()])];
+			const { fullTableName, baseName, columns, primaryKey, uniqueKeys } = info;
+			const pkUniqueCols = [...new Set([...primaryKey, ...uniqueKeys.flat()])];
 
-    const insertCols = columns.filter(c => !["upd_id", "upd_dm"].includes(c.name));
-    const insertNames = insertCols.map(c => c.name);
-    const insertValues = insertCols.map(c => ["reg_dm"].includes(c.name) ? "NOW()" : `p_${c.name}`);
+			const insertCols = columns.filter(c => !["upd_id", "upd_dm"].includes(c.name));
+			const insertNames = insertCols.map(c => c.name);
+			const insertValues = insertCols.map(c => ["reg_dm"].includes(c.name) ? "NOW()" : `p_${c.name}`);
 
-    const updateCols = columns.filter(c =>
-        !pkUniqueCols.includes(c.name) && !["reg_id", "reg_dm"].includes(c.name)
-    );
-    const updateSet = updateCols.map(c =>
-        ["upd_dm"].includes(c.name) ? `${c.name} = NOW()` : `${c.name} = p_${c.name}`
-    );
+			const updateCols = columns.filter(c =>
+				!pkUniqueCols.includes(c.name) && !["reg_id", "reg_dm"].includes(c.name)
+			);
+			const updateSet = updateCols.map(c =>
+				["upd_dm"].includes(c.name) ? `${c.name} = NOW()` : `${c.name} = p_${c.name}`
+			);
 
-    const distinctCols = columns.filter(c =>
-        !pkUniqueCols.includes(c.name) && !["reg_id","reg_dm","upd_id","upd_dm"].includes(c.name)
-    );
-    const distinctWhere = distinctCols.map(c => `${fullTableName}.${c.name} IS DISTINCT FROM p_${c.name}`);
+			const distinctCols = columns.filter(c =>
+				!pkUniqueCols.includes(c.name) && !["reg_id","reg_dm","upd_id","upd_dm"].includes(c.name)
+			);
+			const distinctWhere = distinctCols.map(c => `${fullTableName}.${c.name} IS DISTINCT FROM p_${c.name}`);
 
-    const pColsDef = columns.map(c => `p_${c.name} ${c.type.replaceAll(/DEFAULT.*/g,"").replaceAll(/NOT NULL.*/g, "").trim()}`).join(",\n    ");
+			const pColsDef = columns.map(c => `p_${c.name} ${c.type.replaceAll(/DEFAULT.*/g,"").replaceAll(/NOT NULL.*/g, "").trim()}`).join(",\n    ");
 
-    rightText.value = `CREATE OR REPLACE FUNCTION public.fn_${baseName}(
+			rightText.value = `CREATE OR REPLACE FUNCTION public.fn_${baseName}(
     ${pColsDef},
     p_act_type text
 )
@@ -372,24 +395,24 @@ BEGIN
     SELECT p_${columns[0].name};
 END;
 $BODY$;`;
-    Auto01();
-}
-function pgTbToFnTbHis() {
-    const ddl = leftText.value;
-    const info = parseDdl(ddl);
-    if (!info) { rightText.value = "parseDdl 실패"; return; }
+			Auto01();
+		}
+		function pgTbToFnTbHis() {
+			const ddl = leftText.value;
+			const info = parseDdl(ddl);
+			if (!info) { rightText.value = "parseDdl 실패"; return; }
 
-    const { baseName, columns } = info;
-    const historyTable = `${baseName}_history`;
+			const { baseName, columns } = info;
+			const historyTable = `${baseName}_history`;
 
-    const pColsDef = columns.map(c => `p_${c.name} ${c.type.replaceAll(/DEFAULT.*/g,"").replaceAll(/NOT NULL.*/g, "").trim()}`).join(",\n    ");
+			const pColsDef = columns.map(c => `p_${c.name} ${c.type.replaceAll(/DEFAULT.*/g,"").replaceAll(/NOT NULL.*/g, "").trim()}`).join(",\n    ");
 
-    const insertCols = ["his_uuid","his_dm","his_state",...columns.map(c => c.name)];
-    const insertValues = ["v_his_uuid","NOW()","p_his_state",...columns.map(c =>
-        c.name === "reg_dm" ? "NOW()" : `p_${c.name}`
-    )];
+			const insertCols = ["his_uuid","his_dm","his_state",...columns.map(c => c.name)];
+			const insertValues = ["v_his_uuid","NOW()","p_his_state",...columns.map(c =>
+				c.name === "reg_dm" ? "NOW()" : `p_${c.name}`
+			)];
 
-    rightText.value = `CREATE OR REPLACE FUNCTION public.fn_${baseName}_history(
+			rightText.value = `CREATE OR REPLACE FUNCTION public.fn_${baseName}_history(
     p_his_state text,
     ${pColsDef}
 )
@@ -411,29 +434,29 @@ BEGIN
     SELECT v_his_uuid;
 END;
 $BODY$;`;
-    Auto01();
-}
-function pgTbToTbCs() {
-    const ddl = leftText.value;
-    const info = parseDdl(ddl);
-    if (!info) { rightText.value = "parseDdl 실패"; return; }
+			Auto01();
+		}
+		function pgTbToTbCs() {
+			const ddl = leftText.value;
+			const info = parseDdl(ddl);
+			if (!info) { rightText.value = "parseDdl 실패"; return; }
 
-    const { baseName, tableComment, columns, primaryKey } = info;
-    const className = baseName.toUpperCase();
+			const { baseName, tableComment, columns, primaryKey } = info;
+			const className = baseName.toUpperCase();
 
-    const colsForCs = columns.map(col => {
-        const typeLower = col.type.toLowerCase();
-        let csType = "string";
-        if (typeLower.includes("int") || typeLower.includes("numeric") || typeLower.includes("real")) csType = "decimal";
-        else if (typeLower.includes("numeric") || typeLower.includes("decimal")) csType = "decimal";
-        return {
-            name: col.name.toUpperCase(),
-            csType: csType + (primaryKey.includes(col.name) ? "" : "?"),
-            desc: col.comment || col.name
-        };
-    });
+			const colsForCs = columns.map(col => {
+				const typeLower = col.type.toLowerCase();
+				let csType = "string";
+				if (typeLower.includes("int") || typeLower.includes("numeric") || typeLower.includes("real")) csType = "decimal";
+				else if (typeLower.includes("numeric") || typeLower.includes("decimal")) csType = "decimal";
+				return {
+					name: col.name.toUpperCase(),
+					csType: csType + (primaryKey.includes(col.name) ? "" : "?"),
+					desc: col.comment || col.name
+				};
+			});
 
-    rightText.value = `using System.ComponentModel;
+			rightText.value = `using System.ComponentModel;
 
 namespace HS.Web.RabbitMQApi
 {
@@ -445,33 +468,33 @@ ${colsForCs.map(c =>
         public ${c.csType} ${c.name} { get; set; }`).join("\n\n")}
     }
 }`;
-    Auto01();
-}
-function pgTbToFnTbCs(upper_lower) {
-    const ddl = leftText.value;
-    const info = parseDdl(ddl);
-    if (!info) { rightText.value = "parseDdl 실패"; return; }
-
-    const columns = [];
-
-    for(e of info.columns){
-        if(["reg_id","reg_dm","upd_id","upd_dm","inact_yn"].includes(e.name)){
-            continue;
-        }
-        let dv = "V";
-        if(e.type.includes("int") || e.type.includes("numeric") || e.type.includes("real")){
-            dv = "D";
-        } else if(e.type.includes("timestamp") || e.type.includes("date")){
-            dv = "DT";
-        }
-		if(upper_lower == 1){
-			columns.push(`{Data["${e.name.toUpperCase()}"].${dv}}`);
-		} else {
-			columns.push(`{Data["${e.name.toLowerCase()}"].${dv}}`);
+			Auto01();
 		}
-    }
+		function pgTbToFnTbCs(upper_lower) {
+			const ddl = leftText.value;
+			const info = parseDdl(ddl);
+			if (!info) { rightText.value = "parseDdl 실패"; return; }
 
-    rightText.value = `using HS.Core;
+			const columns = [];
+
+			for(e of info.columns){
+				if(["reg_id","reg_dm","upd_id","upd_dm","inact_yn"].includes(e.name)){
+					continue;
+				}
+				let dv = "V";
+				if(e.type.includes("int") || e.type.includes("numeric") || e.type.includes("real")){
+					dv = "D";
+				} else if(e.type.includes("timestamp") || e.type.includes("date")){
+					dv = "DT";
+				}
+				if(upper_lower == 1){
+					columns.push(`{Data["${e.name.toUpperCase()}"].${dv}}`);
+				} else {
+					columns.push(`{Data["${e.name.toLowerCase()}"].${dv}}`);
+				}
+			}
+
+			rightText.value = `using HS.Core;
 using HS.Web.Common;
 using System.Text;
 
@@ -581,64 +604,64 @@ namespace HS.Web.Proc
     }
 }`;
 
-    Auto01();
-}
-function msSqlToPgTb() {
-const lines = leftText.value.trim().split(/\r?\n/).map(l => l.trim()).filter(l => l);
+			Auto01();
+		}
+		function msSqlToPgTb() {
+			const lines = leftText.value.trim().split(/\r?\n/).map(l => l.trim()).filter(l => l);
 
-// 테이블명 추출 (CREATE TABLE [DB].[Schema].[TableName] 또는 CREATE TABLE TableName)
-let tableName = '';
-const tableLine = lines.find(l => l.toUpperCase().startsWith('CREATE TABLE'));
-if (tableLine) {
-    const match = tableLine.match(/CREATE TABLE\s+(\[?[\w]+\]?\.)?\[?[\w]+\]?\.(\w+)/i)
-              || tableLine.match(/CREATE TABLE\s+(\w+)/i);
-    if (match) tableName = (match[2] || match[1]).toLowerCase();
-}
+			// 테이블명 추출 (CREATE TABLE [DB].[Schema].[TableName] 또는 CREATE TABLE TableName)
+			let tableName = '';
+			const tableLine = lines.find(l => l.toUpperCase().startsWith('CREATE TABLE'));
+			if (tableLine) {
+				const match = tableLine.match(/CREATE TABLE\s+(\[?[\w]+\]?\.)?\[?[\w]+\]?\.(\w+)/i)
+						  || tableLine.match(/CREATE TABLE\s+(\w+)/i);
+				if (match) tableName = (match[2] || match[1]).toLowerCase();
+			}
 
-// 컬럼 정의만 추출 (괄호 안쪽)
-const startIdx = lines.findIndex(l => l.includes('('));
-const endIdx = lines.findIndex(l => l.includes(');'));
-const colLines = lines.slice(startIdx + 1, endIdx);
+			// 컬럼 정의만 추출 (괄호 안쪽)
+			const startIdx = lines.findIndex(l => l.includes('('));
+			const endIdx = lines.findIndex(l => l.includes(');'));
+			const colLines = lines.slice(startIdx + 1, endIdx);
 
-// 첫 번째 컬럼 이름 → 첫 컬럼 id
-let firstCol = colLines[0].split(/\s+/)[0].toLowerCase();
-let firstColId = tableName.split('_').map(p => p[0]).join('') + '_id';
+			// 첫 번째 컬럼 이름 → 첫 컬럼 id
+			let firstCol = colLines[0].split(/\s+/)[0].toLowerCase();
+			let firstColId = tableName.split('_').map(p => p[0]).join('') + '_id';
 
-// 컬럼 변환
-let pgCols = [`${firstColId} bigint NOT NULL`];
-colLines.forEach(line => {
-    if (/^constraint/i.test(line)) return; // 제약조건 라인은 건너뜀
-    let [colName, ...rest] = line.replace(/,/, '').split(/\s+/);
-    let colType = rest.join(' ');
-    pgCols.push(`${colName.toLowerCase()} ${convertMsPg(colType)}`);
-});
+			// 컬럼 변환
+			let pgCols = [`${firstColId} bigint NOT NULL`];
+			colLines.forEach(line => {
+				if (/^constraint/i.test(line)) return; // 제약조건 라인은 건너뜀
+				let [colName, ...rest] = line.replace(/,/, '').split(/\s+/);
+				let colType = rest.join(' ');
+				pgCols.push(`${colName.toLowerCase()} ${convertMsPg(colType)}`);
+			});
 
-// 마지막 5개 컬럼 추가
-pgCols.push(
-    'reg_id text',
-    'reg_dm timestamp without time zone',
-    'upd_id text',
-    'upd_dm timestamp without time zone',
-    'inact_yn text'
-);
+			// 마지막 5개 컬럼 추가
+			pgCols.push(
+				'reg_id text',
+				'reg_dm timestamp without time zone',
+				'upd_id text',
+				'upd_dm timestamp without time zone',
+				'inact_yn text'
+			);
 
-// PK 제약조건 추출
-let pkLine = lines.find(l => /primary key/i.test(l));
-let pkConstraint = '';
-if (pkLine) {
-    const m = pkLine.match(/\(([^)]+)\)/); // 괄호 안 컬럼
-    if (m) {
-        const pkCols = m[1].split(",").map(c => c.trim().toLowerCase()).join(',');
-        pkConstraint = `CONSTRAINT ${tableName}_pkey PRIMARY KEY (${pkCols})`;
-    }
-}
+			// PK 제약조건 추출
+			let pkLine = lines.find(l => /primary key/i.test(l));
+			let pkConstraint = '';
+			if (pkLine) {
+				const m = pkLine.match(/\(([^)]+)\)/); // 괄호 안 컬럼
+				if (m) {
+					const pkCols = m[1].split(",").map(c => c.trim().toLowerCase()).join(',');
+					pkConstraint = `CONSTRAINT ${tableName}_pkey PRIMARY KEY (${pkCols})`;
+				}
+			}
 
-// 최종 CREATE TABLE 문자열 생성
-let constraints = [];
-if (pkConstraint) constraints.push(pkConstraint);
-constraints.push(`CONSTRAINT ${tableName}_${firstColId}_key UNIQUE (${firstColId})`);
+			// 최종 CREATE TABLE 문자열 생성
+			let constraints = [];
+			if (pkConstraint) constraints.push(pkConstraint);
+			constraints.push(`CONSTRAINT ${tableName}_${firstColId}_key UNIQUE (${firstColId})`);
 
-rightText.value = `CREATE TABLE IF NOT EXISTS ${tableName} (\n    ${pgCols.join(',\n    ')},\n    ${constraints.join(',\n    ')}\n);\n\n` +
+			rightText.value = `CREATE TABLE IF NOT EXISTS ${tableName} (\n    ${pgCols.join(',\n    ')},\n    ${constraints.join(',\n    ')}\n);\n\n` +
 `COMMENT ON COLUMN ${tableName}.reg_id IS '등록자';\n` +
 `COMMENT ON COLUMN ${tableName}.reg_dm IS '등록일시';\n` +
 `COMMENT ON COLUMN ${tableName}.upd_id IS '수정자';\n` +
@@ -697,127 +720,126 @@ rightText.value = `CREATE TABLE IF NOT EXISTS ${tableName} (\n    ${pgCols.join(
 
             Auto01();
         }
-function MmadDocsToPgTb() {
-    const tableName = ipt_1.value;
+		function MmadDocsToPgTb() {
+			const tableName = ipt_1.value;
 
-    // 첫 번째 컬럼 생성: 테이블명에서 _로 나누고 첫 글자 따서 id 붙이기
-    const firstColName = tableName.split('_').map(p => p[0]).join('') + "_id";
+			// 첫 번째 컬럼 생성: 테이블명에서 _로 나누고 첫 글자 따서 id 붙이기
+			const firstColName = tableName.split('_').map(p => p[0]).join('') + "_id";
 
-    const lines = leftText.value.split('\n');
-    let columns = [`${firstColName} bigint NOT NULL,`]; // 첫 번째 컬럼
-    let comments = [];
+			const lines = leftText.value.split('\n');
+			let columns = [`${firstColName} bigint NOT NULL,`]; // 첫 번째 컬럼
+			let comments = [];
 
-    lines.forEach(line => {
-        const parts = line.split('\t').map(p => p.trim());
-        if(parts.length < 2) return;
+			lines.forEach(line => {
+				const parts = line.split('\t').map(p => p.trim());
+				if(parts.length < 2) return;
 
-        // $.payload.data[]. 혹은 $.data[]. 제거
-        let colName = parts[0].replace(/^\$\.(payload\.)?data\[\]\./, '');
-        let pgType = convertMsPg(parts[1]); // 기존 convertMsPg 함수 사용
-        let notNull = parts[2] === 'N' ? ' NOT NULL' : '';
+				// $.payload.data[]. 혹은 $.data[]. 제거
+				let colName = parts[0].replace(/^\$\.(payload\.)?data\[\]\./, '');
+				let pgType = convertMsPg(parts[1]); // 기존 convertMsPg 함수 사용
+				let notNull = parts[2] === 'N' ? ' NOT NULL' : '';
 
-        columns.push(`${colName} ${pgType}${notNull},`);
+				columns.push(`${colName} ${pgType}${notNull},`);
 
-        // 주석 처리: parts[3]가 없으면 빈 문자열도 허용
-        const commentText = parts[3] ? parts[3] : '';
-        comments.push(`COMMENT ON COLUMN ${tableName}.${colName} IS '${commentText}';`);
-    });
+				// 주석 처리: parts[3]가 없으면 빈 문자열도 허용
+				const commentText = parts[3] ? parts[3] : '';
+				comments.push(`COMMENT ON COLUMN ${tableName}.${colName} IS '${commentText}';`);
+			});
 
-    // 고정 컬럼 추가
-    columns.push(
-        `reg_id text,`,
-        `reg_dm timestamp without time zone,`,
-        `upd_id text,`,
-        `upd_dm timestamp without time zone,`,
-        `inact_yn text`
-    );
+			// 고정 컬럼 추가
+			columns.push(
+				`reg_id text,`,
+				`reg_dm timestamp without time zone,`,
+				`upd_id text,`,
+				`upd_dm timestamp without time zone,`,
+				`inact_yn text`
+			);
 
-    comments.push(
-        `COMMENT ON COLUMN ${tableName}.reg_id IS '등록자';`,
-        `COMMENT ON COLUMN ${tableName}.reg_dm IS '등록일시';`,
-        `COMMENT ON COLUMN ${tableName}.upd_id IS '수정자';`,
-        `COMMENT ON COLUMN ${tableName}.upd_dm IS '수정일시';`,
-        `COMMENT ON COLUMN ${tableName}.inact_yn IS '데이터제외구분';`
-    );
+			comments.push(
+				`COMMENT ON COLUMN ${tableName}.reg_id IS '등록자';`,
+				`COMMENT ON COLUMN ${tableName}.reg_dm IS '등록일시';`,
+				`COMMENT ON COLUMN ${tableName}.upd_id IS '수정자';`,
+				`COMMENT ON COLUMN ${tableName}.upd_dm IS '수정일시';`,
+				`COMMENT ON COLUMN ${tableName}.inact_yn IS '데이터제외구분';`
+			);
 
-    // 마지막 쉼표 제거
-    if(columns.length > 0) {
-        const lastIndex = columns.length - 1;
-        columns[lastIndex] = columns[lastIndex].replace(/,$/, '');
-    }
+			// 마지막 쉼표 제거
+			if(columns.length > 0) {
+				const lastIndex = columns.length - 1;
+				columns[lastIndex] = columns[lastIndex].replace(/,$/, '');
+			}
 
-    // 테이블 생성 + 제약조건 (CREATE TABLE 안에서)
-    columns.push(
-        `CONSTRAINT ${tableName}_pkey PRIMARY KEY (asst_cd, revision_no, asst_group_cd, company),`,
-        `CONSTRAINT ${tableName}_${firstColName}_key UNIQUE (${firstColName})`
-    );
+			// 테이블 생성 + 제약조건 (CREATE TABLE 안에서)
+			columns.push(
+				`CONSTRAINT ${tableName}_pkey PRIMARY KEY (asst_cd, revision_no, asst_group_cd, company),`,
+				`CONSTRAINT ${tableName}_${firstColName}_key UNIQUE (${firstColName})`
+			);
 
-    const createTable = `CREATE TABLE ${tableName} (\n${columns.map(c => '    ' + c).join('\n')}\n);\n`;
+			const createTable = `CREATE TABLE ${tableName} (\n${columns.map(c => '    ' + c).join('\n')}\n);\n`;
 
-    rightText.value = createTable + '\n' + comments.join('\n');
+			rightText.value = createTable + '\n' + comments.join('\n');
 
-    Auto01();
-}
-function msSqlToPgTb2() {
-		let str = leftText.value.replace(/(nvarchar|varchar)\(\d+\)/g, "text")
-			.replaceAll(" COLLATE Korean_Wansung_CI_AS", "");
-		let strList = str.split("\n");
-		console.log(strList);
-		let strListStart = -1;
-		let tableName = "";
-		let rtnStr = "";
-		for(let i = 0; i < strList.length; i++){
-			let strOne = strList[i].trim();
-			if(strListStart < 0 && strOne.startsWith("CREATE TABLE")){
-				strListStart = i;
-				tableName = /CREATE TABLE .+\.(\w+)/.exec(strList[i])[1].toLowerCase();
-				rtnStr = "CREATE TABLE " + tableName + "(\n";
-			} else if(strListStart > -1){
-				if(strOne.startsWith("CONSTRAINT")){
-					if(strOne.indexOf("PRIMARY KEY") > -1){
-						rtnStr += "reg_dm timestamp without time zone,\n";
-						rtnStr += "reg_id text,\n";
-						rtnStr += "upd_dm timestamp without time zone,\n";
-						rtnStr += "upd_id text,\n";
-						rtnStr += strOne.replace(/(?<=CONSTRAINT )\w+/, tableName + "_pkey").replace(/\([\w,]+\)/, e => e.toLowerCase()) + "\n";
+			Auto01();
+		}
+		function msSqlToPgTb2() {
+			let str = leftText.value.replace(/(nvarchar|varchar)\(\d+\)/g, "text")
+				.replaceAll(" COLLATE Korean_Wansung_CI_AS", "");
+			let strList = str.split("\n");
+			console.log(strList);
+			let strListStart = -1;
+			let tableName = "";
+			let rtnStr = "";
+			for(let i = 0; i < strList.length; i++){
+				let strOne = strList[i].trim();
+				if(strListStart < 0 && strOne.startsWith("CREATE TABLE")){
+					strListStart = i;
+					tableName = /CREATE TABLE .+\.(\w+)/.exec(strList[i])[1].toLowerCase();
+					rtnStr = "CREATE TABLE " + tableName + "(\n";
+				} else if(strListStart > -1){
+					if(strOne.startsWith("CONSTRAINT")){
+						if(strOne.indexOf("PRIMARY KEY") > -1){
+							rtnStr += "reg_dm timestamp without time zone,\n";
+							rtnStr += "reg_id text,\n";
+							rtnStr += "upd_dm timestamp without time zone,\n";
+							rtnStr += "upd_id text,\n";
+							rtnStr += strOne.replace(/(?<=CONSTRAINT )\w+/, tableName + "_pkey").replace(/\([\w,]+\)/, e => e.toLowerCase()) + "\n";
+						}
+					} else if(strOne.startsWith("REGIST_DATE")
+						|| strOne.startsWith("REGIST_ID")
+						|| strOne.startsWith("CHANGE_DATE")
+						|| strOne.startsWith("CHANGE_ID")){
+					
+					} else {
+						rtnStr += strOne.replace(/(\w+) /, e => e.toLowerCase()) + "\n";
 					}
-				} else if(strOne.startsWith("REGIST_DATE")
-					|| strOne.startsWith("REGIST_ID")
-					|| strOne.startsWith("CHANGE_DATE")
-					|| strOne.startsWith("CHANGE_ID")){
-				
-				} else {
-					rtnStr += strOne.replace(/(\w+) /, e => e.toLowerCase()) + "\n";
 				}
 			}
+			rightText.value = rtnStr;
+
+			Auto01();
 		}
-		rightText.value = rtnStr;
+		function pgTbToFnTb2() {
+			const ddl = leftText.value;
+			const info = parseDdl(ddl);
+			if (!info) { rightText.value = "parseDdl 실패"; return; }
 
+			const { fullTableName, baseName, columns, primaryKey, uniqueKeys } = info;
+			const pkUniqueCols = [...new Set([...primaryKey, ...uniqueKeys.flat()])];
 
-		Auto01();
-	}
-function pgTbToFnTb2() {
-    const ddl = leftText.value;
-    const info = parseDdl(ddl);
-    if (!info) { rightText.value = "parseDdl 실패"; return; }
+			const insertCols = columns.filter(c => !["upd_id", "upd_dm"].includes(c.name));
+			const insertNames = insertCols.map(c => c.name);
+			const insertValues = insertCols.map(c => ["reg_dm"].includes(c.name) ? "NOW()" : `p_${c.name}`);
 
-    const { fullTableName, baseName, columns, primaryKey, uniqueKeys } = info;
-    const pkUniqueCols = [...new Set([...primaryKey, ...uniqueKeys.flat()])];
+			const updateCols = columns.filter(c =>
+				!pkUniqueCols.includes(c.name) && !["reg_id", "reg_dm"].includes(c.name)
+			);
+			const updateSet = updateCols.map(c =>
+				["upd_dm"].includes(c.name) ? `${c.name} = NOW()` : `${c.name} = p_${c.name}`
+			);
 
-    const insertCols = columns.filter(c => !["upd_id", "upd_dm"].includes(c.name));
-    const insertNames = insertCols.map(c => c.name);
-    const insertValues = insertCols.map(c => ["reg_dm"].includes(c.name) ? "NOW()" : `p_${c.name}`);
+			const pColsDef = columns.filter(c => !["reg_dm", "upd_dm"].includes(c.name)).map(c => `p_${c.name} ${c.type.replaceAll(/DEFAULT.*/g,"").replaceAll(/NOT NULL.*/g, "").trim()}`).join(",\n    ");
 
-    const updateCols = columns.filter(c =>
-        !pkUniqueCols.includes(c.name) && !["reg_id", "reg_dm"].includes(c.name)
-    );
-    const updateSet = updateCols.map(c =>
-        ["upd_dm"].includes(c.name) ? `${c.name} = NOW()` : `${c.name} = p_${c.name}`
-    );
-
-    const pColsDef = columns.filter(c => !["reg_dm", "upd_dm"].includes(c.name)).map(c => `p_${c.name} ${c.type.replaceAll(/DEFAULT.*/g,"").replaceAll(/NOT NULL.*/g, "").trim()}`).join(",\n    ");
-
-    rightText.value = `CREATE OR REPLACE FUNCTION public.fn_${baseName}(
+			rightText.value = `CREATE OR REPLACE FUNCTION public.fn_${baseName}(
     ${pColsDef}
 )
 RETURNS TABLE(r_${columns[0].name} ${columns[0].type.replace(/ .*/, '')})
@@ -841,33 +863,33 @@ BEGIN
     SELECT p_${columns[0].name};
 END;
 $BODY$;`;
-    Auto01();
-}
-function pgTbToFnTbCs2(upper_lower) {
-    const ddl = leftText.value;
-    const info = parseDdl(ddl);
-    if (!info) { rightText.value = "parseDdl 실패"; return; }
-
-    const columns = [];
-
-    for(e of info.columns){
-        if(["reg_id","reg_dm","upd_id","upd_dm","inact_yn"].includes(e.name)){
-            continue;
-        }
-        let dv = "V";
-        if(e.type.includes("int") || e.type.includes("numeric") || e.type.includes("real")){
-            dv = "D";
-        } else if(e.type.includes("timestamp") || e.type.includes("date")){
-            dv = "DT";
-        }
-		if(upper_lower == 1){
-			columns.push(`{data["${e.name.toUpperCase()}"].${dv}}`);
-		} else {
-			columns.push(`{data["${e.name.toLowerCase()}"].${dv}}`);
+			Auto01();
 		}
-    }
+		function pgTbToFnTbCs2(upper_lower) {
+			const ddl = leftText.value;
+			const info = parseDdl(ddl);
+			if (!info) { rightText.value = "parseDdl 실패"; return; }
 
-    rightText.value = `            sSQL.Append($@"
+			const columns = [];
+
+			for(e of info.columns){
+				if(["reg_id","reg_dm","upd_id","upd_dm","inact_yn"].includes(e.name)){
+					continue;
+				}
+				let dv = "V";
+				if(e.type.includes("int") || e.type.includes("numeric") || e.type.includes("real")){
+					dv = "D";
+				} else if(e.type.includes("timestamp") || e.type.includes("date")){
+					dv = "DT";
+				}
+				if(upper_lower == 1){
+					columns.push(`{data["${e.name.toUpperCase()}"].${dv}}`);
+				} else {
+					columns.push(`{data["${e.name.toLowerCase()}"].${dv}}`);
+				}
+			}
+
+			rightText.value = `            sSQL.Append($@"
 SELECT * FROM fn_${info.baseName}
 (
     ${(columns.join("\n    , "))}
@@ -875,32 +897,30 @@ SELECT * FROM fn_${info.baseName}
     , {data["upd_id"].V}
 );");`;
 
-    Auto01();
-}
-function MesToPgTb() {
-	const lines = leftText.value.split('\n');
-	let regex = /INSERT INTO\s+([A-Za-z0-9_]+)/;
+			Auto01();
+		}
+		function MesToPgTb() {
+			const lines = leftText.value.split('\n');
+			let regex = /INSERT INTO\s+([A-Za-z0-9_]+)/;
 
-	let replaced = lines.map(line => {
-		return line.replace(regex, 'INSERT INTO ' + ipt_1.value);
-	}).join('\n');
-	
-	const match = replaced.match(/\(([^,]+),/);
-	
-	regex = new RegExp("\\(\\s*(" + match[1] + "\\s*,)", "g");
+			let replaced = lines.map(line => {
+				return line.replace(regex, 'INSERT INTO ' + ipt_1.value);
+			}).join('\n');
+			
+			const match = replaced.match(/\(([^,]+),/);
+			
+			regex = new RegExp("\\(\\s*(" + match[1] + "\\s*,)", "g");
 
-	replaced = replaced.replace(regex, "(" + ipt_2.value + ", $1");
-	
-	replaced = replaced.replace(/VALUES\(/g, 'VALUES(seq(), ');
-	
-	replaced = replaced.replace(/\(N'/g, "('");
-	
-	replaced = replaced.replace(/, N'/g, ", '");
+			replaced = replaced.replace(regex, "(" + ipt_2.value + ", $1");
+			
+			replaced = replaced.replace(/\(N'/g, "(seq(),'");
+			
+			replaced = replaced.replace(/,N'/g, ",'");
 
-    rightText.value = replaced;
+			rightText.value = replaced;
 
-    Auto01();
-}
+			Auto01();
+		}
     </script>
 </body>
 </html>
