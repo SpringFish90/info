@@ -235,17 +235,6 @@
             Auto01();
         }
         function SqlUppercaseKeywords() {
-            const keywords = [
-                "select", "from", "where", "group", "by", "order", "limit",
-                "offset", "insert", "into", "values", "update", "set",
-                "delete", "create", "alter", "drop", "table", "view", "index",
-                "left", "right", "inner", "outer", "join", "on", "as",
-                "case", "when", "then", "else", "end", "distinct",
-                "and", "or", "not", "in", "exists", "like", "ilike",
-                "union", "except", "intersect", "having", "with",
-                "max", "min", "count", "sum", "coalesce", "to_char", "now"
-            ];
-
             let result = leftText.value;
             
             result = result.replace(/'[^']*'|[^']+/g, (match) => {
@@ -256,6 +245,18 @@
                 // 나머지는 소문자로
                 return match.toLowerCase();
             });
+
+            const keywords = [
+                "select", "from", "where", "group", "by", "order", "limit",
+                "offset", "insert", "into", "values", "update", "set",
+                "delete", "create", "alter", "drop", "table", "view", "index",
+                "left", "right", "inner", "outer", "join", "on", "as",
+                "case", "when", "then", "else", "end", "distinct",
+                "and", "or", "not", "in", "exists", "like", "ilike",
+                "union", "except", "intersect", "having", "with",
+                "max", "min", "count", "sum", "coalesce",
+				"to_char", "now", "null", "is"
+            ];
 
             keywords.forEach(kw => {
                 const regex = new RegExp(`\\b${kw}\\b`, "gi");
