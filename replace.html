@@ -67,6 +67,7 @@
             <button onclick="FromPgTb()">pgTb</button>
             <button onclick="CharWidth()">문자열 너비</button>
             <button onclick="BncosReplace()">Bncos 치환</button>
+            <button onclick="ScadaReplace()">Scada 치환</button>
             <br>
             <button onclick="pgTbToTbHis()">pgTb→TbHis</button>
             <button onclick="pgTbToFnTb()">pgTb→fn_Tb</button>
@@ -289,7 +290,7 @@
                 return num.toString().padStart(2, "0");
             }
             function yyyyMMdd(date){
-                return date.getFullYear()+"-"+pad(date.getMonth() + 1)+"-"+pad(date.getDate());
+                return date.getFullYear() + "-" + pad(date.getMonth() + 1) + "-" + pad(date.getDate());
             }
             function yyyyMMdd2(date){
                 const map = {
@@ -304,6 +305,9 @@
                 return date.getFullYear()+"."+pad(date.getMonth() + 1)+"."+pad(date.getDate())
                     + " " + map[date.getDay()] + "요일"
             }
+            function yyyyMMdd3(date){
+                return date.getFullYear() + "년 " + pad(date.getMonth() + 1) + "월 " + pad(date.getDate()) + "일";
+            }
             let date = new Date();
             rightText.value = ipt_1.value + " " + yyyyMMdd(date) + " 일일 업무보고서\n";
             rightText.value += yyyyMMdd2(date) + "\n";
@@ -316,6 +320,7 @@
 
             rightText.value += ipt_1.value + " " + yyyyMMdd(date) + " 휴가신청서(오후반차)\n";
             rightText.value += ipt_1.value + " " + yyyyMMdd(date) + " 지출결의서\n";
+			rightText.value += ipt_1.value + " " + yyyyMMdd(date) + " 출장신청서\n" + yyyyMMdd3(date) + " ~ " + yyyyMMdd3(date) + "\n대중교통(ktx, srt)";
             Auto01();
         }
         
@@ -469,6 +474,18 @@ col.add({
             replaced = replaced.replace(/\bp_upd_id\b/gi, "p_change_id");
             
             replaced = replaced.replace("-- DROP", "DROP");
+
+            rightText.value = replaced;
+
+            Auto01();
+        }
+		
+        function ScadaReplace() {
+            let leftTextVal = leftText.value;
+
+            let replaced = leftTextVal.replace(/'\${/g, `{terms["`);
+			
+			replaced = replaced.replace(/}'/g, `"].V}`);
 
             rightText.value = replaced;
 
